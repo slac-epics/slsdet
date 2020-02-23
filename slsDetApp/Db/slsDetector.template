@@ -1,0 +1,29 @@
+record(stringin,"$(SLSDET):$(MOD):HOSTNAME")
+{
+  field(SCAN, "1 second")
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),$(ADDR))SLS_HOSTNAME")
+}
+
+record(bi,"$(SLSDET):$(MOD):CONN_STATUS")
+{
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP, "@asyn($(PORT),$(ADDR))SLS_CONN_STATUS")
+}
+
+record(ai,"$(SLSDET):$(MOD):FPGA_TEMP")
+{
+  field(SCAN, "1 second")
+  field(DTYP, "asynFloat64")
+  field(INP, "@asyn($(PORT),$(ADDR))SLS_FPGA_TEMP")
+}
+
+record(ai,"$(SLSDET):$(MOD):ADC_TEMP")
+{
+  field(SCAN, "1 second")
+  field(DTYP, "asynFloat64")
+  field(INP, "@asyn($(PORT),$(ADDR))SLS_ADC_TEMP")
+}
+
+

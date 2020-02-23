@@ -1,0 +1,15 @@
+record(mbbi, "$(SLSDET):STATUS")
+{
+  field(DESC, "The run status of the multiDetector")
+  field(SCAN, "1 second")
+  field(DTYP, "asynInt32")
+  field(INP, "@asyn($(PORT))SLS_RUN_STATUS")
+}
+
+record(longin,"$(SLSDET):NUM_MODULES")
+{
+  field(DESC, "Number of modules in the multiDetector")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP, "@asyn($(PORT))SLS_NUM_DETS")
+}

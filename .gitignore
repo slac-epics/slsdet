@@ -1,0 +1,15 @@
+*~
+O.*
+*.log
+*.swp
+archive/
+autosave/
+bin/
+db/
+dbd/
+html/
+include/
+lib/
+cdCommands
+envPaths
+RELEASE_SITE
