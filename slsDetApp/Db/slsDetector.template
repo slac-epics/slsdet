@@ -1,6 +1,6 @@
 record(stringin,"$(SLSDET):$(MOD):HOSTNAME")
 {
-  field(SCAN, "1 second")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
   field(INP, "@asyn($(PORT),$(ADDR))SLS_HOSTNAME")
 }

@@ -33,12 +33,14 @@ protected:
   virtual void shutdown();
   // enum information
   typedef struct {
-    const char* name;
+    const std::string name;
     int value;
     epicsAlarmSeverity severity;
   } SlsDetEnumInfo;
   static const SlsDetEnumInfo SlsConnStatusEnums[];
   static const size_t SlsConnStatusNumEnums;
+  static const SlsDetEnumInfo SlsRunStatusEnums[];
+  static const size_t SlsRunStatusNumEnums;
   // parameters
   int _numDetValue;
   int _runStatusValue;

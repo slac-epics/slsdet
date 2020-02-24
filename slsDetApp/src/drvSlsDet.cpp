@@ -18,11 +18,26 @@ static void exitHandler(void *drvPvt) {
   delete pPvt;
 }
 
+#define sizeofenum(enums) sizeof(enums) / sizeof(enums[0])
+
 const SlsDet::SlsDetEnumInfo SlsDet::SlsConnStatusEnums[] = {
   {"Disconnected",  0, epicsSevMajor},
   {"Connected",     1, epicsSevNone}
 };
-const size_t SlsDet::SlsConnStatusNumEnums = sizeof(SlsDet::SlsConnStatusEnums) / sizeof(SlsDet::SlsConnStatusEnums[0]);
+const size_t SlsDet::SlsConnStatusNumEnums = sizeofenum(SlsDet::SlsConnStatusEnums);
+
+const SlsDet::SlsDetEnumInfo SlsDet::SlsRunStatusEnums[] = {
+  {slsDetectorDefs::runStatusType(slsDetectorDefs::IDLE), slsDetectorDefs::IDLE, epicsSevNone},
+  {slsDetectorDefs::runStatusType(slsDetectorDefs::ERROR), slsDetectorDefs::ERROR, epicsSevMajor},
+  {slsDetectorDefs::runStatusType(slsDetectorDefs::WAITING), slsDetectorDefs::WAITING, epicsSevNone},
+  {slsDetectorDefs::runStatusType(slsDetectorDefs::RUN_FINISHED), slsDetectorDefs::RUN_FINISHED, epicsSevNone},
+  {slsDetectorDefs::runStatusType(slsDetectorDefs::TRANSMITTING), slsDetectorDefs::TRANSMITTING, epicsSevNone},
+  {slsDetectorDefs::runStatusType(slsDetectorDefs::RUNNING), slsDetectorDefs::RUNNING, epicsSevNone},
+  {slsDetectorDefs::runStatusType(slsDetectorDefs::STOPPED), slsDetectorDefs::STOPPED, epicsSevNone}
+};
+const size_t SlsDet::SlsRunStatusNumEnums = sizeofenum(SlsRunStatusEnums);
+
+#undef sizeofenum
 
 /* Port driver parameters */
 #define SlsNumDetString       "SLS_NUM_DETS"
@@ -102,18 +117,18 @@ asynStatus SlsDet::initialize(asynUser *pasynUser)
     for (int addr=0; addr<_maxdets; addr++) {
       getIntegerParam(addr, _connStatusValue, &conn);
       if (!conn) {
-        printf("before\n");
         std::string reply = _det->getHostname(addr);
         setStringParam(addr, _hostNameValue, reply);
-        slsDetectorDefs::runStatus s = _det->getRunStatus();
-        printf("the reply was %s\n", _det->runStatusType(s).c_str());
+        slsDetectorDefs::runStatus rs = _det->getRunStatus();
+        if (rs != slsDetectorDefs::ERROR) {
+          setIntegerParam(_runStatusValue, slsDetectorDefs::IDLE);
+          callParamCallbacks();
+        }
         status = checkError(pasynUser, functionName, false);
         if (status == asynSuccess) {
-          printf("reconn set %d\n", status);
           setIntegerParam(addr, _connStatusValue, 1);
         }
         callParamCallbacks(addr);
-        printf("after\n");
       }
     }
     if (status == asynSuccess) pasynManager->exceptionConnect(pasynUser);
@@ -147,7 +162,6 @@ asynStatus SlsDet::uninitialize(asynUser *pasynUser, bool shutdown)
     this->shutdown();
   } else {
     status = getAddress(pasynUser, &addr);
-    printf("killing addr %d\n", addr);
     if (status == asynSuccess) {
       setIntegerParam(addr, _connStatusValue, 0);
       callParamCallbacks(addr);
@@ -193,8 +207,6 @@ asynStatus SlsDet::checkError(asynUser *pasynUser, const char* caller, bool disc
   err_bit = 1L << addr;
   err_mask = _det->getErrorMask();
 
-  printf("error (mask, bit) %ld %ld\n", err_mask, err_bit);
-
   if (err_mask & err_bit) {
     asynPrint(pasynUser, ASYN_TRACE_ERROR,
              "%s:%s, port %s, ERROR (0x%lx) reading from address %d - %s\n",
@@ -217,28 +229,23 @@ asynStatus SlsDet::readRunStatus(asynUser *pasynUser, epicsInt32 *value)
   int conn;
   slsDetectorDefs::runStatus raw_value;
   int function = pasynUser->reason;
-  asynStatus status = asynSuccess;
   static const char *functionName = "readRunStatus";
 
   this->getAddress(pasynUser, &addr);
-  getIntegerParam(addr, _connStatusValue, &conn);
+  getIntegerParam(addr, _runStatusValue, &conn);
 
-  if (conn) {
+  if (conn != slsDetectorDefs::ERROR) {
     raw_value = _det->getRunStatus();
-    if (status == asynSuccess) {
-      *value = raw_value;
-      asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-                "%s:%s, port %s, read raw value %d (%s) from address %d\n",
-                driverName, functionName, this->portName, raw_value,
-                slsDetectorDefs::runStatusType(raw_value).c_str(), addr);
-      setIntegerParam(addr, function, *value);
-      callParamCallbacks(addr);
-    }
-  } else {
-    status = asynDisconnected;
+    *value = raw_value;
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s, port %s, read raw value %d (%s) from address %d\n",
+              driverName, functionName, this->portName, raw_value,
+              slsDetectorDefs::runStatusType(raw_value).c_str(), addr);
+    setIntegerParam(addr, function, *value);
+    callParamCallbacks(addr);
   }
 
-  return status;
+  return asynSuccess;
 }
 
 asynStatus SlsDet::readTemperature(asynUser *pasynUser, epicsFloat64 *value,
@@ -246,7 +253,7 @@ asynStatus SlsDet::readTemperature(asynUser *pasynUser, epicsFloat64 *value,
 {
   int addr;
   int conn;
-  int raw_value;
+  dacs_t raw_value;
   int function = pasynUser->reason;
   asynStatus status = asynSuccess;
   static const char *functionName = "readTemperature";
@@ -324,9 +331,18 @@ asynStatus SlsDet::readEnum(asynUser *pasynUser, char *strings[], int values[],
   if (function == _connStatusValue) {
     for (i = 0; ((i < (int)SlsConnStatusNumEnums) && (i < (int)nElements)); ++i) {
       if (strings[i]) free(strings[i]);
-      strings[i] = epicsStrDup(SlsConnStatusEnums[i].name);
+      strings[i] = epicsStrDup(SlsConnStatusEnums[i].name.c_str());
       values[i] = SlsConnStatusEnums[i].value;
       severities[i] = SlsConnStatusEnums[i].severity;
+    }
+    *nIn = i;
+    return asynSuccess;
+  } else if (function == _runStatusValue) {
+    for (i = 0; ((i < (int)SlsRunStatusNumEnums) && (i < (int)nElements)); ++i) {
+      if (strings[i]) free(strings[i]);
+      strings[i] = epicsStrDup(SlsRunStatusEnums[i].name.c_str());
+      values[i] = SlsRunStatusEnums[i].value;
+      severities[i] = SlsRunStatusEnums[i].severity;
     }
     *nIn = i;
     return asynSuccess;
