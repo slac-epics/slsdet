@@ -36,6 +36,4 @@ EPICS_BASE              = $(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
 -include $(TOP)/../../EPICS_BASE.check
 
 #MY_MODULES	= /reg/neh/home/bhill/git-wa-neh/modules
-#ADCORE		= $(MY_MODULES)/ADCore-git
 #ASYN		= $(MY_MODULES)/asyn-git
-#DIAG_TIMER	= $(MY_MODULES)/diagTimer-git

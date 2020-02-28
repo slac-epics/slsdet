@@ -1,29 +1,58 @@
-record(stringin,"$(SLSDET):$(MOD):HOSTNAME")
-{
-  field(SCAN, "I/O Intr")
-  field(DTYP, "asynOctetRead")
-  field(INP, "@asyn($(PORT),$(ADDR))SLS_HOSTNAME")
-}
-
 record(bi,"$(SLSDET):$(MOD):CONN_STATUS")
 {
   field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP, "@asyn($(PORT),$(ADDR))SLS_CONN_STATUS")
+  field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_CONN_STATUS")
+}
+
+record(longin, "$(SLSDET):$(MOD):CONN_POLL")
+{
+  field(SCAN, "5 second")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_INIT")
+  field(DISV, "1")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(PINI, "YES")
+}
+
+record(stringin,"$(SLSDET):$(MOD):HOSTNAME")
+{
+  field(SCAN, "1 second")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_HOSTNAME")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(mbbi, "$(SLSDET):$(MOD):STATUS")
+{
+  field(SCAN, "1 second")
+  field(DTYP, "asynInt32")
+  field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_RUN_STATUS")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
 }
 
 record(ai,"$(SLSDET):$(MOD):FPGA_TEMP")
 {
   field(SCAN, "1 second")
   field(DTYP, "asynFloat64")
-  field(INP, "@asyn($(PORT),$(ADDR))SLS_FPGA_TEMP")
+  field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_FPGA_TEMP")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
 }
 
 record(ai,"$(SLSDET):$(MOD):ADC_TEMP")
 {
   field(SCAN, "1 second")
   field(DTYP, "asynFloat64")
-  field(INP, "@asyn($(PORT),$(ADDR))SLS_ADC_TEMP")
+  field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_ADC_TEMP")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
 }
 
 

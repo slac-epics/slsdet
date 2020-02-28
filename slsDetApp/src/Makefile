@@ -6,9 +6,13 @@ include $(TOP)/configure/CONFIG
 
 LIBRARY_IOC += slsDet
 
-INC += drvSlsDet.h
+INC += slsDetMessage.h
+INC += slsDetDriver.h
+INC += drvAsynSlsDetPort.h
 
-LIB_SRCS += drvSlsDet.cpp
+LIB_SRCS += slsDetMessage.cpp
+LIB_SRCS += slsDetDriver.cpp
+LIB_SRCS += drvAsynSlsDetPort.cpp
 
 LIB_LIBS += SlsDetector
 LIB_LIBS += SlsReceiver
