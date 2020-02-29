@@ -22,7 +22,7 @@ class SlsDetDriver;
   */
 class SlsDet : public asynPortDriver {
 public:
-  SlsDet(const char *portName, const std::vector<std::string>& hostnames, int id);
+  SlsDet(const char *portName, const std::vector<std::string>& hostnames, int id, double timeout);
   virtual ~SlsDet();
 
   /* These are the methods that we override from asynPortDriver */
@@ -31,6 +31,9 @@ public:
   virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
+  virtual asynStatus readOctet(asynUser *pasynUser,
+                               char *value, size_t maxChars, size_t *nActual,
+                               int *eomReason);
   virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], int values[],
                               int severities[], size_t nElements, size_t *nIn);
   /* cleans up the slsDetectorPackage resources */
@@ -38,7 +41,6 @@ public:
 
 protected:
   /* These are the methods that communicate with the detector */
-  virtual asynStatus readRunStatus(asynUser *pasynUser, epicsInt32 *value);
   virtual asynStatus readDetector(asynUser *pasynUser, SlsDetMessage::MessageType mtype);
   virtual asynStatus initialize(asynUser *pasynUser);
   virtual asynStatus uninitialize(asynUser *pasynUser);
@@ -46,15 +48,22 @@ protected:
   virtual void updateEnums(int addr);
   // enum information
   enum ConnectionStatus { DISCONNECTED=0, CONNECTED=1 };
+  enum OnOff { OFF=0, ON=1 };
   typedef struct {
     const std::string name;
     int value;
     epicsAlarmSeverity severity;
   } SlsDetEnumInfo;
+  typedef struct {
+    const SlsDetEnumInfo *enums;
+    size_t size;
+    const char *name;
+  } SlsDetEnumSet;
+  static const SlsDetEnumInfo SlsOnOffEnums[];
   static const SlsDetEnumInfo SlsConnStatusEnums[];
-  static const size_t SlsConnStatusNumEnums;
   static const SlsDetEnumInfo SlsRunStatusEnums[];
-  static const size_t SlsRunStatusNumEnums;
+  static const SlsDetEnumSet SlsDetEnums[];
+  static const size_t SlsDetEnumsSize;
   char* _enumStrings[SLS_MAX_ENUMS];
   int   _enumValues[SLS_MAX_ENUMS];
   int   _enumSeverities[SLS_MAX_ENUMS];
@@ -66,6 +75,8 @@ protected:
   int _hostNameValue;
   int _fpgaTempValue;
   int _adcTempValue;
+  int _getChipPowerValue;
+  int _setChipPowerValue;
 
 private:
   typedef std::vector<SlsDetDriver*> SlsDetList;
@@ -73,6 +84,7 @@ private:
 
 private:
   const int                 _id;
+  const double              _timeout;
   std::vector<std::string>  _hostnames;
   SlsDetList                _dets;
 };

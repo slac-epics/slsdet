@@ -23,10 +23,6 @@ public:
   virtual unsigned pending() const;
   virtual SlsDetMessage request(SlsDetMessage request, double timeout);
   virtual SlsDetMessage request(SlsDetMessage::MessageType mtype, double timeout);
-  /* remove this */
-  virtual std::string getHostname(asynStatus* status=NULL);
-  virtual int getNumberOfDetectors(asynStatus* status=NULL);
-  virtual slsDetectorDefs::runStatus getRunStatus(asynStatus* status=NULL);
 
 protected:
   virtual int stop();
@@ -34,8 +30,12 @@ protected:
   virtual int reply(SlsDetMessage::MessageType mtype);
   virtual int reply(SlsDetMessage msg);
   virtual void initialize();
-  virtual SlsDetMessage getTemperature(slsDetectorDefs::dacIndex dac);
   virtual SlsDetMessage checkOnline();
+  virtual SlsDetMessage getHostname();
+  virtual SlsDetMessage getRunStatus();
+  virtual SlsDetMessage getNumberOfDetectors();
+  virtual SlsDetMessage getTemperature(slsDetectorDefs::dacIndex dac);
+  virtual SlsDetMessage powerChip(int value=-1);
 
 private:
   asynUser*         _pasynUser;
@@ -43,6 +43,7 @@ private:
   unsigned          _pending;
   const int         _id;
   const int         _addr;
+  const int         _pos;
   const int         _maxDets;
   const double      _pollTime;
   const char*       _portName;

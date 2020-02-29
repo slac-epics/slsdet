@@ -17,11 +17,15 @@ public:
     Exit,
     Invalid,
     Timeout,
+    Failed,
     CheckOnline,
     ReadHostname,
     ReadRunStatus,
+    ReadNumDetectors,
     ReadFpgaTemp,
     ReadAdcTemp,
+    ReadPowerChip,
+    WritePowerChip,
   } MessageType;
 
   /** Data types used by SlsDetDriver**/

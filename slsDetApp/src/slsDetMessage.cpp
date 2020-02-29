@@ -22,16 +22,24 @@ std::string SlsDetMessage::messageType(MessageType mtype)
     return std::string("Invalid");
   case Timeout:
     return std::string("Timeout");
+  case Failed:
+    return std::string("Failed");
   case CheckOnline:
     return std::string("CheckOnline");
   case ReadHostname:
     return std::string("ReadHostname");
   case ReadRunStatus:
     return std::string("ReadRunStatus");
+  case ReadNumDetectors:
+    return std::string("ReadNumDetectors");
   case ReadFpgaTemp:
     return std::string("ReadFpgaTemp");
   case ReadAdcTemp:
     return std::string("ReadAdcTemp");
+  case ReadPowerChip:
+    return std::string("ReadPowerChip");
+  case WritePowerChip:
+    return std::string("WritePowerChip");
   default:
     return std::string("Unknown");
   }

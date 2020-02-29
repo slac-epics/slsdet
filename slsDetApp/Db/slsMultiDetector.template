@@ -3,5 +3,6 @@ record(longin,"$(SLSDET):NUM_MODULES")
   field(DESC, "Number of modules in the multiDetector")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP, "@asyn($(PORT))SLS_NUM_DETS")
+  field(INP,  "@asyn($(PORT))SLS_NUM_DETS")
 }
+

@@ -3,6 +3,7 @@
 #include <multiSlsDetector.h>
 
 #define MAX_MQ_CAPACITY 4
+#define DET_POS 0
 #define MAX_DETS 1
 #define DEFAULT_POLL_TIME 0.250
 #define THREAD_TMO 2.0
@@ -16,6 +17,7 @@ SlsDetDriver::SlsDetDriver(const std::string &hostName, const int id,
   _pending(0),
   _id(id),
   _addr(addr),
+  _pos(DET_POS),
   _maxDets(MAX_DETS),
   _pollTime(DEFAULT_POLL_TIME),
   _portName(portName),
@@ -47,24 +49,6 @@ SlsDetDriver::~SlsDetDriver()
   pasynManager->freeAsynUser(_pasynUser);
 }
 
-std::string SlsDetDriver::getHostname(asynStatus* status)
-{
-  if (status) *status = asynSuccess;
-  return std::string("fake");
-}
-
-int SlsDetDriver::getNumberOfDetectors(asynStatus* status)
-{
-  if (status) *status = asynSuccess;
-  return 1;
-}
-
-slsDetectorDefs::runStatus SlsDetDriver::getRunStatus(asynStatus* status)
-{
-  if (status) *status = asynSuccess;
-  return slsDetectorDefs::IDLE;
-}
-
 SlsDetMessage SlsDetDriver::checkOnline()
 {
   std::string offline;
@@ -87,6 +71,91 @@ SlsDetMessage SlsDetDriver::checkOnline()
   return rep;
 }
 
+SlsDetMessage SlsDetDriver::getHostname()
+{
+  int crit;
+  std::string hostname;
+  SlsDetMessage rep(SlsDetMessage::Error);
+  static const char *functionName = "getHostname";
+
+  if (_det) {
+    asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s, port=%s, address=%d calling getHostname\n",
+              driverName, functionName, _portName, _addr);
+    hostname = _det->getHostname(_pos);
+    if (!_det->getErrorMask()) {
+    asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s, port=%s, address=%d getHostname returned: %s\n",
+              driverName, functionName, _portName, _addr, hostname.c_str());
+      rep = SlsDetMessage(SlsDetMessage::Ok, SlsDetMessage::String);
+      rep.setString(hostname);
+    } else {
+      asynPrint(_pasynUser, ASYN_TRACE_ERROR,
+                 "%s:%s: port=%s address=%d error calling getHostname: %s\n",
+                 driverName, functionName, _portName, _addr, _det->getErrorMessage(crit).c_str());
+    }
+  }
+
+  return rep;
+}
+
+SlsDetMessage SlsDetDriver::getRunStatus()
+{
+  int crit;
+  slsDetectorDefs::runStatus status;
+  SlsDetMessage rep(SlsDetMessage::Error);
+  static const char *functionName = "getRunStatus";
+
+  if (_det) {
+    asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s, port=%s, address=%d calling getRunStatus\n",
+              driverName, functionName, _portName, _addr);
+    status = _det->getRunStatus();
+    if (!_det->getErrorMask()) {
+      asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+                "%s:%s, port=%s, address=%d getRunStatus returned status: %d (%s)\n",
+                driverName, functionName, _portName, _addr, status,
+                slsDetectorDefs::runStatusType(status).c_str());
+      rep = SlsDetMessage(SlsDetMessage::Ok, SlsDetMessage::Int32);
+      rep.setInteger(status);
+    } else {
+      asynPrint(_pasynUser, ASYN_TRACE_ERROR,
+                 "%s:%s: port=%s address=%d error calling getRunStatus: %s\n",
+                 driverName, functionName, _portName, _addr, _det->getErrorMessage(crit).c_str());
+    }
+  }
+
+  return rep;
+}
+
+SlsDetMessage SlsDetDriver::getNumberOfDetectors()
+{
+  int crit;
+  int num_dets;
+  SlsDetMessage rep(SlsDetMessage::Error);
+  static const char *functionName = "getNumberOfDetectors";
+
+  if (_det) {
+    asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s, port=%s, address=%d calling getNumberOfDetectors\n",
+              driverName, functionName, _portName, _addr);
+    num_dets = _det->getNumberOfDetectors();
+    if (!_det->getErrorMask()) {
+      asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+                "%s:%s, port=%s, address=%d getNumberOfDetectors returned num_dets: %d\n",
+                driverName, functionName, _portName, _addr, num_dets);
+      rep = SlsDetMessage(SlsDetMessage::Ok, SlsDetMessage::Int32);
+      rep.setInteger(num_dets);
+    } else {
+      asynPrint(_pasynUser, ASYN_TRACE_ERROR,
+                 "%s:%s: port=%s address=%d error calling getNumberOfDetectors: %s\n",
+                 driverName, functionName, _portName, _addr, _det->getErrorMessage(crit).c_str());
+    }
+  }
+
+  return rep;
+}
+
 SlsDetMessage SlsDetDriver::getTemperature(slsDetectorDefs::dacIndex dac)
 {
   int crit;
@@ -98,7 +167,7 @@ SlsDetMessage SlsDetDriver::getTemperature(slsDetectorDefs::dacIndex dac)
     asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
               "%s:%s, port=%s, address=%d calling getADC\n",
               driverName, functionName, _portName, _addr);
-    raw_value = _det->getADC(dac);
+    raw_value = _det->getADC(dac, _pos);
     if (!_det->getErrorMask()) {
       asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
                 "%s:%s, port=%s, address=%d getADC returned raw value: %d\n",
@@ -108,6 +177,46 @@ SlsDetMessage SlsDetDriver::getTemperature(slsDetectorDefs::dacIndex dac)
     } else {
       asynPrint(_pasynUser, ASYN_TRACE_ERROR,
                  "%s:%s: port=%s address=%d error calling getADC: %s\n",
+                 driverName, functionName, _portName, _addr, _det->getErrorMessage(crit).c_str());
+    }
+  }
+
+  return rep;
+}
+
+SlsDetMessage SlsDetDriver::powerChip(int value)
+{
+  int crit;
+  int ret;
+  SlsDetMessage rep(SlsDetMessage::Error);
+  static const char *functionName = "powerChip";
+
+  if (_det) {
+    asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s, port=%s, address=%d calling powerChip\n",
+              driverName, functionName, _portName, _addr);
+    ret = _det->powerChip(value);
+    if (!_det->getErrorMask()) {
+      if (value < 0) { // this is a read
+        asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+                 "%s:%s, port=%s, address=%d powerChip read returned: %d\n",
+                 driverName, functionName, _portName, _addr, ret);
+        rep = SlsDetMessage(SlsDetMessage::Ok, SlsDetMessage::Int32);
+        rep.setInteger(ret);
+      } else { // this is a write
+        asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+                 "%s:%s, port=%s, address=%d powerChip write returned: %s\n",
+                 driverName, functionName, _portName, _addr,
+                 ret == slsDetectorDefs::OK ? "OK" : "FAIL");
+        if (ret == slsDetectorDefs::OK) {
+          rep = SlsDetMessage(SlsDetMessage::Ok);
+        } else {
+          rep = SlsDetMessage(SlsDetMessage::Failed);
+        }
+      }
+    } else {
+      asynPrint(_pasynUser, ASYN_TRACE_ERROR,
+                 "%s:%s: port=%s address=%d error calling powerChip: %s\n",
                  driverName, functionName, _portName, _addr, _det->getErrorMessage(crit).c_str());
     }
   }
@@ -261,13 +370,25 @@ void SlsDetDriver::run()
             driverName, functionName, _portName, _addr, req.dump().c_str());
       switch (req.mtype()) {
       case SlsDetMessage::CheckOnline:
-        rep = SlsDetDriver::checkOnline();
+        rep = checkOnline();
+        break;
+      case SlsDetMessage::ReadHostname:
+        rep = getHostname();
+        break;
+      case SlsDetMessage::ReadRunStatus:
+        rep = getRunStatus();
+        break;
+      case SlsDetMessage::ReadNumDetectors:
+        rep = getNumberOfDetectors();
         break;
       case SlsDetMessage::ReadFpgaTemp:
         rep = getTemperature(slsDetectorDefs::TEMPERATURE_FPGA);
         break;
       case SlsDetMessage::ReadAdcTemp:
         rep = getTemperature(slsDetectorDefs::TEMPERATURE_ADC);
+        break;
+      case SlsDetMessage::ReadPowerChip:
+        rep = powerChip();
         break;
       default:
         asynPrint(_pasynUser, ASYN_TRACE_WARNING,

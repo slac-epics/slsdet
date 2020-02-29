@@ -1,12 +1,15 @@
 record(bi,"$(SLSDET):$(MOD):CONN_STATUS")
 {
+  field(DESC, "The connection status of the module")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_CONN_STATUS")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_CONN_STATUS")
+  field(FLNK, "$(SLSDET):$(MOD):HOSTNAME")
 }
 
 record(longin, "$(SLSDET):$(MOD):CONN_POLL")
 {
+  field(DESC, "Attempt to reconnect module if down")
   field(SCAN, "5 second")
   field(DTYP, "asynInt32")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_INIT")
@@ -17,7 +20,8 @@ record(longin, "$(SLSDET):$(MOD):CONN_POLL")
 
 record(stringin,"$(SLSDET):$(MOD):HOSTNAME")
 {
-  field(SCAN, "1 second")
+  field(DESC, "The hostname of the module")
+  field(SCAN, "Passive")
   field(DTYP, "asynOctetRead")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_HOSTNAME")
   field(DISV, "0")
@@ -27,9 +31,21 @@ record(stringin,"$(SLSDET):$(MOD):HOSTNAME")
 
 record(mbbi, "$(SLSDET):$(MOD):STATUS")
 {
+  field(DESC, "The run status of the module")
   field(SCAN, "1 second")
   field(DTYP, "asynInt32")
-  field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_RUN_STATUS")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_RUN_STATUS")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(bi, "$(SLSDET):$(MOD):CHIP_POWER_RBV")
+{
+  field(DESC, "Module readout chip power readback")
+  field(SCAN, "1 second")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_CHIP_POWER")
   field(DISV, "0")
   field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
   field(DISS, "INVALID")
@@ -37,6 +53,9 @@ record(mbbi, "$(SLSDET):$(MOD):STATUS")
 
 record(ai,"$(SLSDET):$(MOD):FPGA_TEMP")
 {
+  field(DESC, "Temperature sensor on the module FPGA")
+  field(EGU,  "degrees C")
+  field(PREC, "3")
   field(SCAN, "1 second")
   field(DTYP, "asynFloat64")
   field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_FPGA_TEMP")
@@ -47,9 +66,12 @@ record(ai,"$(SLSDET):$(MOD):FPGA_TEMP")
 
 record(ai,"$(SLSDET):$(MOD):ADC_TEMP")
 {
+  field(DESC, "Temperature sensor on the module ADC")
+  field(EGU,  "degrees C")
+  field(PREC, "3")
   field(SCAN, "1 second")
   field(DTYP, "asynFloat64")
-  field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_ADC_TEMP")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_ADC_TEMP")
   field(DISV, "0")
   field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
   field(DISS, "INVALID")
