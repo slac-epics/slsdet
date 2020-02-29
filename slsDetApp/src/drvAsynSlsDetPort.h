@@ -42,6 +42,11 @@ public:
 protected:
   /* These are the methods that communicate with the detector */
   virtual asynStatus readDetector(asynUser *pasynUser, SlsDetMessage::MessageType mtype);
+  virtual asynStatus writeDetector(asynUser *pasynUser, SlsDetMessage msg);
+  virtual asynStatus writeDetector(asynUser *pasynUser, SlsDetMessage::MessageType mtype,
+                                   epicsFloat64 value);
+  virtual asynStatus writeDetector(asynUser *pasynUser, SlsDetMessage::MessageType mtype,
+                                   epicsInt32 value);
   virtual asynStatus initialize(asynUser *pasynUser);
   virtual asynStatus uninitialize(asynUser *pasynUser);
   virtual int isConnected(int addr);

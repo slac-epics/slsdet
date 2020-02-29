@@ -193,8 +193,8 @@ SlsDetMessage SlsDetDriver::powerChip(int value)
 
   if (_det) {
     asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
-              "%s:%s, port=%s, address=%d calling powerChip\n",
-              driverName, functionName, _portName, _addr);
+              "%s:%s, port=%s, address=%d calling powerChip(%d)\n",
+              driverName, functionName, _portName, _addr, value);
     ret = _det->powerChip(value);
     if (!_det->getErrorMask()) {
       if (value < 0) { // this is a read
@@ -389,6 +389,9 @@ void SlsDetDriver::run()
         break;
       case SlsDetMessage::ReadPowerChip:
         rep = powerChip();
+        break;
+      case SlsDetMessage::WritePowerChip:
+        rep = powerChip(req.asInteger());
         break;
       default:
         asynPrint(_pasynUser, ASYN_TRACE_WARNING,

@@ -261,21 +261,19 @@ asynStatus SlsDet::disconnect(asynUser *pasynUser)
 asynStatus SlsDet::readDetector(asynUser *pasynUser, SlsDetMessage::MessageType mtype)
 {
   int addr;
-  int conn;
   int function = pasynUser->reason;
   double timeout = pasynUser->timeout;
   asynStatus status = this->getAddress(pasynUser, &addr);
   static const char *functionName = "readDetector";
 
   if (status == asynSuccess) {
-    getIntegerParam(addr, _connStatusValue, &conn);
     if (isConnected(addr)) {
-      asynPrint(pasynUser, ASYN_TRACE_FLOW,
+      asynPrint(pasynUser, ASYN_TRACEIO_DEVICE,
                 "%s:%s: port=%s address=%d sending request of type %s with timeout %g\n",
                 driverName, functionName, this->portName, addr,
                 SlsDetMessage::messageType(mtype).c_str(), timeout);
       SlsDetMessage reply = _dets[addr]->request(mtype, timeout);
-      asynPrint(pasynUser, ASYN_TRACE_FLOW,
+      asynPrint(pasynUser, ASYN_TRACEIO_DEVICE,
                 "%s:%s: port=%s address=%d received reply: %s\n",
                 driverName, functionName, this->portName, addr, reply.dump().c_str());
       if (reply.mtype() == SlsDetMessage::Ok) {
@@ -317,6 +315,90 @@ asynStatus SlsDet::readDetector(asynUser *pasynUser, SlsDetMessage::MessageType 
       }
     } else {
       status = asynDisconnected;
+    }
+  }
+
+  return status;
+}
+
+asynStatus SlsDet::writeDetector(asynUser *pasynUser, SlsDetMessage msg)
+{
+  int addr;
+  double timeout = pasynUser->timeout;
+  asynStatus status = this->getAddress(pasynUser, &addr);
+  static const char *functionName = "writeDetector";
+
+  if (status == asynSuccess) {
+    if (isConnected(addr)) {
+      asynPrint(pasynUser, ASYN_TRACEIO_DEVICE,
+                "%s:%s: port=%s address=%d sending request %s with timeout %g\n",
+                driverName, functionName, this->portName, addr,
+                msg.dump().c_str(), timeout);
+      SlsDetMessage reply = _dets[addr]->request(msg, timeout);
+      asynPrint(pasynUser, ASYN_TRACEIO_DEVICE,
+                "%s:%s: port=%s address=%d received reply: %s\n",
+                driverName, functionName, this->portName, addr, reply.dump().c_str());
+      if (reply.mtype() == SlsDetMessage::Ok) {
+        if (reply.dtype() != SlsDetMessage::None) {
+          asynPrint(pasynUser, ASYN_TRACE_ERROR,
+                "%s:%s: port=%s address=%d received reply with unsupported datatype: %s\n",
+                driverName, functionName, this->portName, addr,
+                SlsDetMessage::dataType(reply.dtype()).c_str());
+          status = asynError;
+        }
+      } else if (reply.mtype() == SlsDetMessage::Failed) {
+        status = asynError;
+      } else if (reply.mtype() == SlsDetMessage::Invalid) {
+        status = asynError;
+      } else if (reply.mtype() == SlsDetMessage::Timeout) {
+        status = asynTimeout;
+        uninitialize(pasynUser);
+      } else {
+        status = asynDisconnected;
+        uninitialize(pasynUser);
+      }
+    } else {
+      status = asynDisconnected;
+    }
+  }
+
+  return status;
+}
+
+asynStatus SlsDet::writeDetector(asynUser *pasynUser, SlsDetMessage::MessageType mtype,
+                                 epicsFloat64 value)
+{
+  int addr;
+  int function = pasynUser->reason;
+  asynStatus status = this->getAddress(pasynUser, &addr);
+  SlsDetMessage msg(mtype, SlsDetMessage::Float64);
+  msg.setDouble(value);
+
+  if (status == asynSuccess) {
+    status = setDoubleParam(addr, function, value);
+    callParamCallbacks(addr);
+    if (status == asynSuccess) {
+      status = writeDetector(pasynUser, msg);
+    }
+  }
+
+  return status;
+}
+
+asynStatus SlsDet::writeDetector(asynUser *pasynUser, SlsDetMessage::MessageType mtype,
+                                 epicsInt32 value)
+{
+  int addr;
+  int function = pasynUser->reason;
+  asynStatus status = this->getAddress(pasynUser, &addr);
+  SlsDetMessage msg(mtype, SlsDetMessage::Int32);
+  msg.setInteger(value);
+
+  if (status == asynSuccess) {
+    status = setIntegerParam(addr, function, value);
+    callParamCallbacks(addr);
+    if (status == asynSuccess) {
+      status = writeDetector(pasynUser, msg);
     }
   }
 
@@ -402,11 +484,15 @@ asynStatus SlsDet::writeInt32(asynUser *pasynUser, epicsInt32 value)
   getParamName(addr, function, &name);
   if (name) {
     asynPrint(pasynUser, ASYN_TRACEIO_DEVICE,
-              "%s:%s: port=%s address=%d received write request for parameter: %s\n",
-               driverName, functionName, this->portName, addr, name);
+              "%s:%s: port=%s address=%d received write request (%d) for parameter: %s\n",
+               driverName, functionName, this->portName, addr, value, name);
   }
 
-  status = asynPortDriver::writeInt32(pasynUser, value);
+  if (function == _setChipPowerValue) {
+    status = writeDetector(pasynUser, SlsDetMessage::WritePowerChip, value);
+  } else {
+    status = asynPortDriver::writeInt32(pasynUser, value);
+  }
 
   return status;
 }

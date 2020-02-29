@@ -40,6 +40,16 @@ record(mbbi, "$(SLSDET):$(MOD):STATUS")
   field(DISS, "INVALID")
 }
 
+record(bo, "$(SLSDET):$(MOD):CHIP_POWER")
+{
+  field(DESC, "Module readout chip power")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_CHIP_POWER")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
 record(bi, "$(SLSDET):$(MOD):CHIP_POWER_RBV")
 {
   field(DESC, "Module readout chip power readback")

@@ -96,7 +96,7 @@ SlsDetMessage::DataType SlsDetMessage::dtype() const
 
 epicsInt32 SlsDetMessage::asInteger() const
 {
-  if (_dtype ==Int32) {
+  if (_dtype == Int32) {
     return _data.ival;
   } else {
     return 0;
@@ -105,7 +105,7 @@ epicsInt32 SlsDetMessage::asInteger() const
 
 epicsInt64 SlsDetMessage::asInteger64() const
 {
-  if (_dtype ==Int32) {
+  if (_dtype == Int64) {
     return _data.i64val;
   } else {
     return 0;
