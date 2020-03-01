@@ -28,6 +28,8 @@ std::string SlsDetMessage::messageType(MessageType mtype)
     return std::string("CheckOnline");
   case ReadHostname:
     return std::string("ReadHostname");
+  case ReadDetType:
+    return std::string("ReadDetType");
   case ReadRunStatus:
     return std::string("ReadRunStatus");
   case ReadNumDetectors:

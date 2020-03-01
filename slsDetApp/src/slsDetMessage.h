@@ -20,6 +20,7 @@ public:
     Failed,
     CheckOnline,
     ReadHostname,
+    ReadDetType,
     ReadRunStatus,
     ReadNumDetectors,
     ReadFpgaTemp,

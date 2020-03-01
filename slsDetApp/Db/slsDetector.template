@@ -4,7 +4,16 @@ record(bi,"$(SLSDET):$(MOD):CONN_STATUS")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_CONN_STATUS")
-  field(FLNK, "$(SLSDET):$(MOD):HOSTNAME")
+  field(FLNK, "$(SLSDET):$(MOD):CONN_UPDATE")
+}
+
+record(fanout, "$(SLSDET):$(MOD):CONN_UPDATE")
+{
+  field(DESC,  "Process records on connection change")
+  field(SCAN,  "Passive")
+  field(SELM,  "All")
+  field(LNK0,  "$(SLSDET):$(MOD):HOSTNAME")
+  field(LNK1,  "$(SLSDET):$(MOD):TYPE")
 }
 
 record(longin, "$(SLSDET):$(MOD):CONN_POLL")
@@ -24,6 +33,17 @@ record(stringin,"$(SLSDET):$(MOD):HOSTNAME")
   field(SCAN, "Passive")
   field(DTYP, "asynOctetRead")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_HOSTNAME")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(mbbi, "$(SLSDET):$(MOD):TYPE")
+{
+  field(DESC, "The detector type of the module")
+  field(SCAN, "Passive")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_DET_TYPE")
   field(DISV, "0")
   field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
   field(DISS, "INVALID")

@@ -25,6 +25,7 @@ static void exitHandler(void *drvPvt) {
 #define SlsRunStatusString    "SLS_RUN_STATUS"
 #define SlsConnStatusString   "SLS_CONN_STATUS"
 #define SlsHostNameString     "SLS_HOSTNAME"
+#define SlsDetTypeString      "SLS_DET_TYPE"
 #define SlsFpgaTempString     "SLS_FPGA_TEMP"
 #define SlsAdcTempString      "SLS_ADC_TEMP"
 #define SlsGetChipPowerString "SLS_GET_CHIP_POWER"
@@ -52,6 +53,21 @@ const SlsDet::SlsDetEnumInfo SlsDet::SlsRunStatusEnums[] = {
   {slsDetectorDefs::runStatusType(slsDetectorDefs::STOPPED), slsDetectorDefs::STOPPED, epicsSevNone}
 };
 
+const SlsDet::SlsDetEnumInfo SlsDet::SlsDetTypesEnums[] = {
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::GENERIC), slsDetectorDefs::GENERIC, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::MYTHEN), slsDetectorDefs::MYTHEN, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::PILATUS), slsDetectorDefs::PILATUS, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::EIGER), slsDetectorDefs::EIGER, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::GOTTHARD), slsDetectorDefs::GOTTHARD, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::PICASSO), slsDetectorDefs::PICASSO, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::AGIPD), slsDetectorDefs::AGIPD, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::MOENCH), slsDetectorDefs::MOENCH, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::JUNGFRAU), slsDetectorDefs::JUNGFRAU, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::JUNGFRAUCTB), slsDetectorDefs::JUNGFRAUCTB, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::PROPIX), slsDetectorDefs::PROPIX, epicsSevNone},
+  {slsDetectorDefs::getDetectorType(slsDetectorDefs::MYTHEN3), slsDetectorDefs::MYTHEN3, epicsSevNone}
+};
+
 const SlsDet::SlsDetEnumSet SlsDet::SlsDetEnums[] = {
   {SlsOnOffEnums,
    sizeofArray(SlsOnOffEnums),
@@ -64,7 +80,10 @@ const SlsDet::SlsDetEnumSet SlsDet::SlsDetEnums[] = {
    SlsConnStatusString},
   {SlsRunStatusEnums,
    sizeofArray(SlsRunStatusEnums),
-   SlsRunStatusString}
+   SlsRunStatusString},
+  {SlsDetTypesEnums,
+   sizeofArray(SlsDetTypesEnums),
+   SlsDetTypeString}
 };
 
 const size_t SlsDet::SlsDetEnumsSize = sizeofArray(SlsDet::SlsDetEnums);
@@ -90,6 +109,7 @@ SlsDet::SlsDet(const char *portName, const std::vector<std::string>& hostnames, 
   createParam(SlsRunStatusString,     asynParamInt32,   &_runStatusValue);
   createParam(SlsConnStatusString,    asynParamInt32,   &_connStatusValue);
   createParam(SlsHostNameString,      asynParamOctet,   &_hostNameValue);
+  createParam(SlsDetTypeString,       asynParamInt32,   &_detTypeValue);
   createParam(SlsFpgaTempString,      asynParamFloat64, &_fpgaTempValue);
   createParam(SlsAdcTempString,       asynParamFloat64, &_adcTempValue);
   createParam(SlsGetChipPowerString,  asynParamInt32,   &_getChipPowerValue);
@@ -457,6 +477,8 @@ asynStatus SlsDet::readInt32(asynUser *pasynUser, epicsInt32 *value)
 
   if (function == _runStatusValue) {
     status = readDetector(pasynUser, SlsDetMessage::ReadRunStatus);
+  } else if (function == _detTypeValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadDetType);
   } else if (function == _getChipPowerValue) {
     status = readDetector(pasynUser, SlsDetMessage::ReadPowerChip);
   } else { // Other functions we call the base class method

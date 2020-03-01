@@ -99,6 +99,34 @@ SlsDetMessage SlsDetDriver::getHostname()
   return rep;
 }
 
+SlsDetMessage SlsDetDriver::getDetectorsType()
+{
+  int crit;
+  slsDetectorDefs::detectorType dettype;
+  SlsDetMessage rep(SlsDetMessage::Error);
+  static const char *functionName = "getDetectorsType";
+
+  if (_det) {
+    asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s, port=%s, address=%d calling getDetectorsType\n",
+              driverName, functionName, _portName, _addr);
+    dettype = _det->getDetectorsType(_pos);
+    if (!_det->getErrorMask()) {
+    asynPrint(_pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s, port=%s, address=%d getDetectorsType returned: %s\n",
+              driverName, functionName, _portName, _addr, slsDetectorDefs::getDetectorType(dettype).c_str());
+      rep = SlsDetMessage(SlsDetMessage::Ok, SlsDetMessage::Int32);
+      rep.setInteger(dettype);
+    } else {
+      asynPrint(_pasynUser, ASYN_TRACE_ERROR,
+                 "%s:%s: port=%s address=%d error calling getDetectorsType: %s\n",
+                 driverName, functionName, _portName, _addr, _det->getErrorMessage(crit).c_str());
+    }
+  }
+
+  return rep;
+}
+
 SlsDetMessage SlsDetDriver::getRunStatus()
 {
   int crit;
@@ -374,6 +402,9 @@ void SlsDetDriver::run()
         break;
       case SlsDetMessage::ReadHostname:
         rep = getHostname();
+        break;
+      case SlsDetMessage::ReadDetType:
+        rep = getDetectorsType();
         break;
       case SlsDetMessage::ReadRunStatus:
         rep = getRunStatus();

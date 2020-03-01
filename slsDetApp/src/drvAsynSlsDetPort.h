@@ -67,6 +67,7 @@ protected:
   static const SlsDetEnumInfo SlsOnOffEnums[];
   static const SlsDetEnumInfo SlsConnStatusEnums[];
   static const SlsDetEnumInfo SlsRunStatusEnums[];
+  static const SlsDetEnumInfo SlsDetTypesEnums[];
   static const SlsDetEnumSet SlsDetEnums[];
   static const size_t SlsDetEnumsSize;
   char* _enumStrings[SLS_MAX_ENUMS];
@@ -78,6 +79,7 @@ protected:
   int _runStatusValue;
   int _connStatusValue;
   int _hostNameValue;
+  int _detTypeValue;
   int _fpgaTempValue;
   int _adcTempValue;
   int _getChipPowerValue;

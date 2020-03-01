@@ -32,6 +32,7 @@ protected:
   virtual void initialize();
   virtual SlsDetMessage checkOnline();
   virtual SlsDetMessage getHostname();
+  virtual SlsDetMessage getDetectorsType();
   virtual SlsDetMessage getRunStatus();
   virtual SlsDetMessage getNumberOfDetectors();
   virtual SlsDetMessage getTemperature(slsDetectorDefs::dacIndex dac);
