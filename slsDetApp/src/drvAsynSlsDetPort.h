@@ -1,13 +1,13 @@
 #ifndef drvAsynSlsDetPort_H
 #define drvAsynSlsDetPort_H
 
-#include <asynPortDriver.h>
+#include "slsDetMessage.h"
+
 #include <sls_detector_defs.h>
+#include <asynPortDriver.h>
 #include <alarm.h>
 
 #include <vector>
-
-#include "slsDetMessage.h"
 
 /* Check if the asyn version supports 64bit ints */
 #if ASYN_VERSION >= 4 && ASYN_REVISION >= 37

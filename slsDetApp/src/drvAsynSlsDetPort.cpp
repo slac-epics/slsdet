@@ -7,6 +7,7 @@
 
 #include <epicsExport.h>
 
+#include <cstdlib>
 #include <cstring>
 
 static const char *driverName = "SlsDet";
@@ -738,7 +739,7 @@ asynStatus SlsDet::readEnum(asynUser *pasynUser, char *strings[], int values[],
                driverName, functionName, this->portName, addr, name);
       size_t i;
       for (i = 0; ((i < matched_size) && (i < nElements)); ++i) {
-        if (strings[i]) free(strings[i]);
+        if (strings[i]) std::free(strings[i]);
         strings[i] = epicsStrDup(matched_enums[i].name.c_str());
         values[i] = matched_enums[i].value;
         severities[i] = matched_enums[i].severity;

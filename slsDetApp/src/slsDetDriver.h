@@ -1,12 +1,12 @@
 #ifndef slsDetDriver_H
 #define slsDetDriver_H
 
+#include "slsDetMessage.h"
+
+#include <sls_detector_defs.h>
 #include <epicsThread.h>
 #include <epicsMessageQueue.h>
 #include <asynDriver.h>
-#include <sls_detector_defs.h>
-
-#include "slsDetMessage.h"
 
 class multiSlsDetector;
 
