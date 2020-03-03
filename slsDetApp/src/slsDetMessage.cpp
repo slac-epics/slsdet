@@ -6,42 +6,44 @@
 #define MAX_MQ_CAPACITY 4
 #define MAX_DETS 1
 #define DEFAULT_POLL_TIME 0.250
+#define ENUM_TO_STR(name)     \
+  case name:                  \
+    return std::string(#name)
 
 std::string SlsDetMessage::messageType(MessageType mtype)
 {
   switch(mtype) {
-  case NoOp:
-    return std::string("NoOp");
-  case Ok:
-    return std::string("Ok");
-  case Error:
-    return std::string("Error");
-  case Exit:
-    return std::string("Exit");
-  case Invalid:
-    return std::string("Invalid");
-  case Timeout:
-    return std::string("Timeout");
-  case Failed:
-    return std::string("Failed");
-  case CheckOnline:
-    return std::string("CheckOnline");
-  case ReadHostname:
-    return std::string("ReadHostname");
-  case ReadDetType:
-    return std::string("ReadDetType");
-  case ReadRunStatus:
-    return std::string("ReadRunStatus");
-  case ReadNumDetectors:
-    return std::string("ReadNumDetectors");
-  case ReadFpgaTemp:
-    return std::string("ReadFpgaTemp");
-  case ReadAdcTemp:
-    return std::string("ReadAdcTemp");
-  case ReadPowerChip:
-    return std::string("ReadPowerChip");
-  case WritePowerChip:
-    return std::string("WritePowerChip");
+  ENUM_TO_STR(NoOp);
+  ENUM_TO_STR(Ok);
+  ENUM_TO_STR(Error);
+  ENUM_TO_STR(Exit);
+  ENUM_TO_STR(Invalid);
+  ENUM_TO_STR(Timeout);
+  ENUM_TO_STR(Failed);
+  ENUM_TO_STR(CheckOnline);
+  ENUM_TO_STR(ReadHostname);
+  ENUM_TO_STR(ReadDetType);
+  ENUM_TO_STR(ReadRunStatus);
+  ENUM_TO_STR(ReadNumDetectors);
+  ENUM_TO_STR(ReadSerialnum);
+  ENUM_TO_STR(ReadFirmwareVer);
+  ENUM_TO_STR(ReadSoftwareVer);
+  ENUM_TO_STR(ReadFpgaTemp);
+  ENUM_TO_STR(ReadAdcTemp);
+  ENUM_TO_STR(ReadTempThreshold);
+  ENUM_TO_STR(WriteTempThreshold);
+  ENUM_TO_STR(ReadTempControl);
+  ENUM_TO_STR(WriteTempControl);
+  ENUM_TO_STR(ReadTempEvent);
+  ENUM_TO_STR(WriteTempEvent);
+  ENUM_TO_STR(ReadPowerChip);
+  ENUM_TO_STR(WritePowerChip);
+  ENUM_TO_STR(ReadHighVoltage);
+  ENUM_TO_STR(WriteHighVoltage);
+  ENUM_TO_STR(ReadClockDivider);
+  ENUM_TO_STR(WriteClockDivider);
+  ENUM_TO_STR(ReadGainMode);
+  ENUM_TO_STR(WriteGainMode);
   default:
     return std::string("Unknown");
   }
@@ -50,16 +52,11 @@ std::string SlsDetMessage::messageType(MessageType mtype)
 std::string SlsDetMessage::dataType(DataType dtype)
 {
   switch(dtype) {
-  case None:
-    return std::string("None");
-  case Int32:
-    return std::string("Int32");
-  case Int64:
-    return std::string("Int64");
-  case Float64:
-    return std::string("Float64");
-  case String:
-    return std::string("String");
+  ENUM_TO_STR(None);
+  ENUM_TO_STR(Int32);
+  ENUM_TO_STR(Int64);
+  ENUM_TO_STR(Float64);
+  ENUM_TO_STR(String);
   default:
     return std::string("Unknown");
   }
@@ -202,10 +199,10 @@ bool SlsDetMessage::setDouble(epicsFloat64 value)
   }
 }
 
-bool SlsDetMessage::setString(const std::string& value)
+bool SlsDetMessage::setString(const char* value)
 {
   if (_dtype == String) {
-    _data.pgp = (void *) value.c_str();
+    _data.pgp = (void *) value;
     return true;
   } else {
     return false;

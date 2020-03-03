@@ -19,23 +19,46 @@ static void exitHandler(void *drvPvt) {
 /* Max size for enum strings */
 #define MAX_ENUM_STRING_SIZE 25
 
-/* Port driver parameters */
-#define SlsInitString         "SLS_INIT"
-#define SlsNumDetString       "SLS_NUM_DETS"
-#define SlsRunStatusString    "SLS_RUN_STATUS"
-#define SlsConnStatusString   "SLS_CONN_STATUS"
-#define SlsHostNameString     "SLS_HOSTNAME"
-#define SlsDetTypeString      "SLS_DET_TYPE"
-#define SlsFpgaTempString     "SLS_FPGA_TEMP"
-#define SlsAdcTempString      "SLS_ADC_TEMP"
-#define SlsGetChipPowerString "SLS_GET_CHIP_POWER"
-#define SlsSetChipPowerString "SLS_SET_CHIP_POWER"
+/* Port driver basic parameters */
+#define SlsInitString       "SLS_INIT"
+#define SlsNumDetString     "SLS_NUM_DETS"
+#define SlsRunStatusString  "SLS_RUN_STATUS"
+#define SlsConnStatusString "SLS_CONN_STATUS"
+#define SlsHostNameString   "SLS_HOSTNAME"
+#define SlsDetTypeString    "SLS_DET_TYPE"
+/* Port driver version parameters */
+#define SlsDetSerialNumString   "SLS_SERIAL_NUMBER"
+#define SlsDetFirmwareVerString "SLS_FIRMWARE_VERSION"
+#define SlsDetSoftwareVerString "SLS_SOFTWARE_VERSION"
+/* Port driver temperature parameters */
+#define SlsFpgaTempString         "SLS_FPGA_TEMP"
+#define SlsAdcTempString          "SLS_ADC_TEMP"
+#define SlsGetTempThresholdString "SLS_GET_TEMP_THRESHOLD"
+#define SlsSetTempThresholdString "SLS_SET_TEMP_THRESHOLD"
+#define SlsGetTempControlString   "SLS_GET_TEMP_CONTROL"
+#define SlsSetTempControlString   "SLS_SET_TEMP_CONTROL"
+#define SlsGetTempEventString     "SLS_GET_TEMP_EVENT"
+#define SlsSetTempEventString     "SLS_SET_TEMP_EVENT"
+/* Port driver advanced control parameters */
+#define SlsGetChipPowerString     "SLS_GET_CHIP_POWER"
+#define SlsSetChipPowerString     "SLS_SET_CHIP_POWER"
+#define SlsGetHighVoltageString   "SLS_GET_HV"
+#define SlsSetHighVoltageString   "SLS_SET_HV"
+#define SlsGetClockDividerString  "SLS_GET_SPEED"
+#define SlsSetClockDividerString  "SLS_SET_SPEED"
+#define SlsGetGainModeString      "SLS_GET_GAIN"
+#define SlsSetGainModeString      "SLS_SET_GAIN"
 
 #define sizeofArray(arr) sizeof(arr) / sizeof(arr[0])
 
 const SlsDet::SlsDetEnumInfo SlsDet::SlsOnOffEnums[] = {
   {"Off", OFF,  epicsSevNone},
   {"On",  ON,   epicsSevNone}
+};
+
+const SlsDet::SlsDetEnumInfo SlsDet::SlsOkTrippedEnums[] = {
+  {"Ok",      OK,       epicsSevNone},
+  {"Tripped", TRIPPED,  epicsSevMajor}
 };
 
 const SlsDet::SlsDetEnumInfo SlsDet::SlsConnStatusEnums[] = {
@@ -68,6 +91,29 @@ const SlsDet::SlsDetEnumInfo SlsDet::SlsDetTypesEnums[] = {
   {slsDetectorDefs::getDetectorType(slsDetectorDefs::MYTHEN3), slsDetectorDefs::MYTHEN3, epicsSevNone}
 };
 
+const SlsDet::SlsDetEnumInfo SlsDet::SlsClockDivEnums[] = {
+  {"Full",    FULL,     epicsSevNone},
+  {"Half",    HALF,     epicsSevNone},
+  {"Quarter", QUARTER,  epicsSevNone}
+};
+
+const SlsDet::SlsDetEnumInfo SlsDet::SlsGainEnums[] = {
+  {"Standard",      slsDetectorDefs::STANDARD,      epicsSevNone},
+  {"Fast",          slsDetectorDefs::FAST,          epicsSevNone},
+  {"HighGain",      slsDetectorDefs::HIGHGAIN,      epicsSevNone},
+  {"DynamicGain",   slsDetectorDefs::DYNAMICGAIN,   epicsSevNone},
+  {"LowGain",       slsDetectorDefs::LOWGAIN,       epicsSevNone},
+  {"MediumGain",    slsDetectorDefs::MEDIUMGAIN,    epicsSevNone},
+  {"VeryHighGain",  slsDetectorDefs::VERYHIGHGAIN,  epicsSevNone},
+  {"LowNoise",      slsDetectorDefs::LOWNOISE,      epicsSevNone},
+  {"DynamicHG0",    slsDetectorDefs::DYNAMICHG0,    epicsSevNone},
+  {"FixGain1",      slsDetectorDefs::FIXGAIN1,      epicsSevNone},
+  {"FixGain2",      slsDetectorDefs::FIXGAIN2,      epicsSevNone},
+  {"ForceSwitchG1", slsDetectorDefs::FORCESWITCHG1, epicsSevNone},
+  {"ForceSwitchG2", slsDetectorDefs::FORCESWITCHG2, epicsSevNone},
+  {"VeryLowGain",   slsDetectorDefs::VERYLOWGAIN,   epicsSevNone},
+};
+
 const SlsDet::SlsDetEnumSet SlsDet::SlsDetEnums[] = {
   {SlsOnOffEnums,
    sizeofArray(SlsOnOffEnums),
@@ -75,6 +121,18 @@ const SlsDet::SlsDetEnumSet SlsDet::SlsDetEnums[] = {
   {SlsOnOffEnums,
    sizeofArray(SlsOnOffEnums),
    SlsSetChipPowerString},
+  {SlsOnOffEnums,
+   sizeofArray(SlsOnOffEnums),
+   SlsGetTempControlString},
+  {SlsOnOffEnums,
+   sizeofArray(SlsOnOffEnums),
+   SlsSetTempControlString},
+  {SlsOkTrippedEnums,
+   sizeofArray(SlsOkTrippedEnums),
+   SlsGetTempEventString},
+  {SlsOkTrippedEnums,
+   sizeofArray(SlsOkTrippedEnums),
+   SlsSetTempEventString},
   {SlsConnStatusEnums,
    sizeofArray(SlsConnStatusEnums),
    SlsConnStatusString},
@@ -83,7 +141,19 @@ const SlsDet::SlsDetEnumSet SlsDet::SlsDetEnums[] = {
    SlsRunStatusString},
   {SlsDetTypesEnums,
    sizeofArray(SlsDetTypesEnums),
-   SlsDetTypeString}
+   SlsDetTypeString},
+  {SlsClockDivEnums,
+   sizeofArray(SlsClockDivEnums),
+   SlsGetClockDividerString},
+  {SlsClockDivEnums,
+   sizeofArray(SlsClockDivEnums),
+   SlsSetClockDividerString},
+  {SlsGainEnums,
+   sizeofArray(SlsGainEnums),
+   SlsGetGainModeString},
+  {SlsGainEnums,
+   sizeofArray(SlsGainEnums),
+   SlsSetGainModeString}
 };
 
 const size_t SlsDet::SlsDetEnumsSize = sizeofArray(SlsDet::SlsDetEnums);
@@ -104,16 +174,31 @@ SlsDet::SlsDet(const char *portName, const std::vector<std::string>& hostnames, 
   /* Create an EPICS exit handler */
   epicsAtExit(exitHandler, this);
 
-  createParam(SlsInitString,          asynParamInt32,   &_initValue);
-  createParam(SlsNumDetString,        asynParamInt32,   &_numDetValue);
-  createParam(SlsRunStatusString,     asynParamInt32,   &_runStatusValue);
-  createParam(SlsConnStatusString,    asynParamInt32,   &_connStatusValue);
-  createParam(SlsHostNameString,      asynParamOctet,   &_hostNameValue);
-  createParam(SlsDetTypeString,       asynParamInt32,   &_detTypeValue);
-  createParam(SlsFpgaTempString,      asynParamFloat64, &_fpgaTempValue);
-  createParam(SlsAdcTempString,       asynParamFloat64, &_adcTempValue);
-  createParam(SlsGetChipPowerString,  asynParamInt32,   &_getChipPowerValue);
-  createParam(SlsSetChipPowerString,  asynParamInt32,   &_setChipPowerValue);
+  createParam(SlsInitString,              asynParamInt32,   &_initValue);
+  createParam(SlsNumDetString,            asynParamInt32,   &_numDetValue);
+  createParam(SlsRunStatusString,         asynParamInt32,   &_runStatusValue);
+  createParam(SlsConnStatusString,        asynParamInt32,   &_connStatusValue);
+  createParam(SlsHostNameString,          asynParamOctet,   &_hostNameValue);
+  createParam(SlsDetTypeString,           asynParamInt32,   &_detTypeValue);
+  createParam(SlsDetSerialNumString,      asynParamOctet,   &_detSerialNumberValue);
+  createParam(SlsDetFirmwareVerString,    asynParamOctet,   &_detFirmwareVersionValue);
+  createParam(SlsDetSoftwareVerString,    asynParamOctet,   &_detSoftwareVersionValue);
+  createParam(SlsFpgaTempString,          asynParamFloat64, &_fpgaTempValue);
+  createParam(SlsAdcTempString,           asynParamFloat64, &_adcTempValue);
+  createParam(SlsGetTempThresholdString,  asynParamFloat64, &_getTempThresholdValue);
+  createParam(SlsSetTempThresholdString,  asynParamFloat64, &_setTempThresholdValue);
+  createParam(SlsGetTempControlString,    asynParamInt32,   &_getTempControlValue);
+  createParam(SlsSetTempControlString,    asynParamInt32,   &_setTempControlValue);
+  createParam(SlsGetTempEventString,      asynParamInt32,   &_getTempEventValue);
+  createParam(SlsSetTempEventString,      asynParamInt32,   &_setTempEventValue);
+  createParam(SlsGetChipPowerString,      asynParamInt32,   &_getChipPowerValue);
+  createParam(SlsSetChipPowerString,      asynParamInt32,   &_setChipPowerValue);
+  createParam(SlsGetHighVoltageString,    asynParamInt32,   &_getHighVoltageValue);
+  createParam(SlsSetHighVoltageString,    asynParamInt32,   &_setHighVoltageValue);
+  createParam(SlsGetClockDividerString,   asynParamInt32,   &_getClockDividerValue);
+  createParam(SlsSetClockDividerString,   asynParamInt32,   &_setClockDividerValue);
+  createParam(SlsGetGainModeString,       asynParamInt32,   &_getGainModeValue);
+  createParam(SlsSetGainModeString,       asynParamInt32,   &_setGainModeValue);
 
   /* Initialize the SlsInit parameter */
   for (int addr=0; addr<(int)_dets.size(); addr++) {
@@ -289,7 +374,7 @@ asynStatus SlsDet::readDetector(asynUser *pasynUser, SlsDetMessage::MessageType 
   if (status == asynSuccess) {
     if (isConnected(addr)) {
       asynPrint(pasynUser, ASYN_TRACEIO_DEVICE,
-                "%s:%s: port=%s address=%d sending request of type %s with timeout %g\n",
+                "%s:%s: port=%s address=%d sending request of type %s with timeout %g seconds\n",
                 driverName, functionName, this->portName, addr,
                 SlsDetMessage::messageType(mtype).c_str(), timeout);
       SlsDetMessage reply = _dets[addr]->request(mtype, timeout);
@@ -325,11 +410,23 @@ asynStatus SlsDet::readDetector(asynUser *pasynUser, SlsDetMessage::MessageType 
           break;
         }
       } else if (reply.mtype() == SlsDetMessage::Invalid) {
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+                  "%s:%s: port=%s address=%d\n driver responded that request of type %s was invalid\n",
+                  driverName, functionName, this->portName, addr,
+                  SlsDetMessage::messageType(mtype).c_str());
         status = asynError;
       } else if (reply.mtype() == SlsDetMessage::Timeout) {
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+                 "%s:%s: port=%s address=%d request of type %s timed out after %g seconds - disconnecting\n",
+                 driverName, functionName, this->portName, addr,
+                 SlsDetMessage::messageType(mtype).c_str(), timeout);
         status = asynTimeout;
         uninitialize(pasynUser);
       } else {
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+                  "%s:%s: port=%s address=%d request of type %s failed - disconnecting\n",
+                  driverName, functionName, this->portName, addr,
+                  SlsDetMessage::messageType(mtype).c_str());
         status = asynDisconnected;
         uninitialize(pasynUser);
       }
@@ -446,6 +543,8 @@ asynStatus SlsDet::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     status = readDetector(pasynUser, SlsDetMessage::ReadFpgaTemp);
   } else if (function == _adcTempValue) {
     status = readDetector(pasynUser, SlsDetMessage::ReadAdcTemp);
+  } else if (function == _getTempThresholdValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadTempThreshold);
   } else { // Other functions we call the base class method
     return asynPortDriver::readFloat64(pasynUser, value);
   }
@@ -455,6 +554,32 @@ asynStatus SlsDet::readFloat64(asynUser *pasynUser, epicsFloat64 *value)
     status = getDoubleParam(addr, function, value);
   }
   
+  return status;
+}
+
+asynStatus SlsDet::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
+{
+  const char* name = NULL;
+  int addr;
+  int function = pasynUser->reason;
+  asynStatus status = asynSuccess;
+  static const char *functionName = "writeFloat64";
+
+  status = getAddress(pasynUser, &addr); if (status != asynSuccess) return status;
+
+  getParamName(addr, function, &name);
+  if (name) {
+    asynPrint(pasynUser, ASYN_TRACEIO_DEVICE,
+              "%s:%s: port=%s address=%d received write request (%g) for parameter: %s\n",
+               driverName, functionName, this->portName, addr, value, name);
+  }
+
+  if (function == _setTempThresholdValue) {
+    status = writeDetector(pasynUser, SlsDetMessage::WriteTempThreshold, value);
+  } else {
+    status = asynPortDriver::writeFloat64(pasynUser, value);
+  }
+
   return status;
 }
 
@@ -479,8 +604,18 @@ asynStatus SlsDet::readInt32(asynUser *pasynUser, epicsInt32 *value)
     status = readDetector(pasynUser, SlsDetMessage::ReadRunStatus);
   } else if (function == _detTypeValue) {
     status = readDetector(pasynUser, SlsDetMessage::ReadDetType);
+  } else if (function == _getTempControlValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadTempControl);
+  } else if (function == _getTempEventValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadTempEvent);
   } else if (function == _getChipPowerValue) {
     status = readDetector(pasynUser, SlsDetMessage::ReadPowerChip);
+  } else if (function == _getHighVoltageValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadHighVoltage);
+  } else if (function == _getClockDividerValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadClockDivider);
+  } else if (function == _getGainModeValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadGainMode);
   } else { // Other functions we call the base class method
     return asynPortDriver::readInt32(pasynUser, value);
   }
@@ -510,9 +645,19 @@ asynStatus SlsDet::writeInt32(asynUser *pasynUser, epicsInt32 value)
                driverName, functionName, this->portName, addr, value, name);
   }
 
-  if (function == _setChipPowerValue) {
+  if (function == _setTempControlValue) {
+    status = writeDetector(pasynUser, SlsDetMessage::WriteTempControl, value);
+  } else if (function == _setTempEventValue) {
+    status = writeDetector(pasynUser, SlsDetMessage::WriteTempEvent, value);
+  } else if (function == _setChipPowerValue) {
     status = writeDetector(pasynUser, SlsDetMessage::WritePowerChip, value);
-  } else {
+  } else if (function == _setHighVoltageValue) {
+    status = writeDetector(pasynUser, SlsDetMessage::WriteHighVoltage, value);
+  } else if (function == _setClockDividerValue) {
+    status = writeDetector(pasynUser, SlsDetMessage::WriteClockDivider, value);
+  } else if (function == _setGainModeValue) {
+    status = writeDetector(pasynUser, SlsDetMessage::WriteGainMode, value);
+  } else { // Other functions we call the base class method
     status = asynPortDriver::writeInt32(pasynUser, value);
   }
 
@@ -540,6 +685,12 @@ asynStatus SlsDet::readOctet(asynUser *pasynUser,
 
   if (function == _hostNameValue) {
     status = readDetector(pasynUser, SlsDetMessage::ReadHostname);
+  } else if (function == _detSerialNumberValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadSerialnum);
+  } else if (function == _detFirmwareVersionValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadFirmwareVer);
+  } else if (function == _detSoftwareVersionValue) {
+    status = readDetector(pasynUser, SlsDetMessage::ReadSoftwareVer);
   } else {
     return asynPortDriver::readOctet(pasynUser, value, maxChars, nActual, eomReason);
   }
@@ -574,7 +725,7 @@ asynStatus SlsDet::readEnum(asynUser *pasynUser, char *strings[], int values[],
                driverName, functionName, this->portName, addr, name);
     /* Search the enum (if any) that goes with the requested parameter. */
     for (unsigned nEnum=0; nEnum<SlsDetEnumsSize; nEnum++) {
-      if (SlsDetEnums[nEnum].name == name) {
+      if (!std::strcmp(SlsDetEnums[nEnum].name, name)) {
         matched_enums = SlsDetEnums[nEnum].enums;
         matched_size = SlsDetEnums[nEnum].size;
         break;

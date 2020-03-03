@@ -14,6 +14,9 @@ record(fanout, "$(SLSDET):$(MOD):CONN_UPDATE")
   field(SELM,  "All")
   field(LNK0,  "$(SLSDET):$(MOD):HOSTNAME")
   field(LNK1,  "$(SLSDET):$(MOD):TYPE")
+  field(LNK2,  "$(SLSDET):$(MOD):SERIAL_NUM")
+  field(LNK3,  "$(SLSDET):$(MOD):FIRMWARE_VER")
+  field(LNK4,  "$(SLSDET):$(MOD):SOFTWARE_VER")
 }
 
 record(longin, "$(SLSDET):$(MOD):CONN_POLL")
@@ -44,6 +47,39 @@ record(mbbi, "$(SLSDET):$(MOD):TYPE")
   field(SCAN, "Passive")
   field(DTYP, "asynInt32")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_DET_TYPE")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(stringin,"$(SLSDET):$(MOD):SERIAL_NUM")
+{
+  field(DESC, "The serial number of the module")
+  field(SCAN, "Passive")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SERIAL_NUMBER")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(stringin,"$(SLSDET):$(MOD):FIRMWARE_VER")
+{
+  field(DESC, "The firmware version of the module")
+  field(SCAN, "Passive")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_FIRMWARE_VERSION")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(stringin,"$(SLSDET):$(MOD):SOFTWARE_VER")
+{
+  field(DESC, "The software version of the module")
+  field(SCAN, "Passive")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_softWARE_VERSION")
   field(DISV, "0")
   field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
   field(DISS, "INVALID")
@@ -81,6 +117,98 @@ record(bi, "$(SLSDET):$(MOD):CHIP_POWER_RBV")
   field(DISS, "INVALID")
 }
 
+record(longout, "$(SLSDET):$(MOD):HV")
+{
+  field(DESC, "Module sensor bias voltage")
+  field(EGU,  "V")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_HV")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(longin, "$(SLSDET):$(MOD):HV_RBV")
+{
+  field(DESC, "Module sensor bias voltage readback")
+  field(EGU,  "V")
+  field(SCAN, "1 second")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_HV")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(ao, "$(SLSDET):$(MOD):TEMP_THRESHOLD")
+{
+  field(DESC, "Module shutdown temp")
+  field(EGU,  "degrees C")
+  field(PREC, "3")
+  field(DRVL, "0.0")
+  field(DRVH, "127.999")
+  field(DTYP, "asynFloat64")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_TEMP_THRESHOLD")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(ai, "$(SLSDET):$(MOD):TEMP_THRESHOLD_RBV")
+{
+  field(DESC, "Module shutdown temp readback")
+  field(EGU,  "degrees C")
+  field(PREC, "3")
+  field(SCAN, "1 second")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_TEMP_THRESHOLD")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(bo, "$(SLSDET):$(MOD):TEMP_CONTROL")
+{
+  field(DESC, "Module temp control on/off")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_TEMP_CONTROL")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(bi, "$(SLSDET):$(MOD):TEMP_CONTROL_RBV")
+{
+  field(DESC, "Module temp control on/off readback")
+  field(SCAN, "1 second")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_TEMP_CONTROL")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(bo, "$(SLSDET):$(MOD):TEMP_EVENT")
+{
+  field(DESC, "Module temp interlock clear")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_TEMP_EVENT")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(bi, "$(SLSDET):$(MOD):TEMP_EVENT_RBV")
+{
+  field(DESC, "Module temp interlock readback")
+  field(SCAN, "1 second")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_TEMP_EVENT")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
 record(ai,"$(SLSDET):$(MOD):FPGA_TEMP")
 {
   field(DESC, "Temperature sensor on the module FPGA")
@@ -107,4 +235,44 @@ record(ai,"$(SLSDET):$(MOD):ADC_TEMP")
   field(DISS, "INVALID")
 }
 
+record(mbbi, "$(SLSDET):$(MOD):SPEED_RBV")
+{
+  field(DESC, "The module clock speed readback")
+  field(SCAN, "1 second")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_SPEED")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
 
+record(mbbo, "$(SLSDET):$(MOD):SPEED")
+{
+  field(DESC, "The module clock speed")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_SPEED")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(mbbi, "$(SLSDET):$(MOD):GAIN_RBV")
+{
+  field(DESC, "The module gain mode readback")
+  field(SCAN, "1 second")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_GAIN")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}
+
+record(mbbo, "$(SLSDET):$(MOD):GAIN")
+{
+  field(DESC, "The module gain mode")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_GAIN")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
+  field(DISS, "INVALID")
+}

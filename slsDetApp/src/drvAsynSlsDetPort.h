@@ -31,6 +31,7 @@ public:
   virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   virtual asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
+  virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   virtual asynStatus readOctet(asynUser *pasynUser,
                                char *value, size_t maxChars, size_t *nActual,
                                int *eomReason);
@@ -54,6 +55,8 @@ protected:
   // enum information
   enum ConnectionStatus { DISCONNECTED=0, CONNECTED=1 };
   enum OnOff { OFF=0, ON=1 };
+  enum OkTripped { OK=0, TRIPPED=1 };
+  enum ClockSpeed { FULL=0, HALF=1, QUARTER=2 };
   typedef struct {
     const std::string name;
     int value;
@@ -65,9 +68,12 @@ protected:
     const char *name;
   } SlsDetEnumSet;
   static const SlsDetEnumInfo SlsOnOffEnums[];
+  static const SlsDetEnumInfo SlsOkTrippedEnums[];
   static const SlsDetEnumInfo SlsConnStatusEnums[];
   static const SlsDetEnumInfo SlsRunStatusEnums[];
   static const SlsDetEnumInfo SlsDetTypesEnums[];
+  static const SlsDetEnumInfo SlsClockDivEnums[];
+  static const SlsDetEnumInfo SlsGainEnums[];
   static const SlsDetEnumSet SlsDetEnums[];
   static const size_t SlsDetEnumsSize;
   char* _enumStrings[SLS_MAX_ENUMS];
@@ -80,10 +86,25 @@ protected:
   int _connStatusValue;
   int _hostNameValue;
   int _detTypeValue;
+  int _detSerialNumberValue;
+  int _detFirmwareVersionValue;
+  int _detSoftwareVersionValue;
   int _fpgaTempValue;
   int _adcTempValue;
+  int _getTempThresholdValue;
+  int _setTempThresholdValue;
+  int _getTempControlValue;
+  int _setTempControlValue;
+  int _getTempEventValue;
+  int _setTempEventValue;
   int _getChipPowerValue;
   int _setChipPowerValue;
+  int _getHighVoltageValue;
+  int _setHighVoltageValue;
+  int _getClockDividerValue;
+  int _setClockDividerValue;
+  int _getGainModeValue;
+  int _setGainModeValue;
 
 private:
   typedef std::vector<SlsDetDriver*> SlsDetList;

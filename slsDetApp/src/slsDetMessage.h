@@ -23,10 +23,25 @@ public:
     ReadDetType,
     ReadRunStatus,
     ReadNumDetectors,
+    ReadSerialnum,
+    ReadFirmwareVer,
+    ReadSoftwareVer,
     ReadFpgaTemp,
     ReadAdcTemp,
+    ReadTempThreshold,
+    WriteTempThreshold,
+    ReadTempControl,
+    WriteTempControl,
+    ReadTempEvent,
+    WriteTempEvent,
     ReadPowerChip,
     WritePowerChip,
+    ReadHighVoltage,
+    WriteHighVoltage,
+    ReadClockDivider,
+    WriteClockDivider,
+    ReadGainMode,
+    WriteGainMode
   } MessageType;
 
   /** Data types used by SlsDetDriver**/
@@ -66,7 +81,7 @@ public:
   bool setInteger(epicsInt32 value);
   bool setInteger64(epicsInt64 value);
   bool setDouble(epicsFloat64 value);
-  bool setString(const std::string& value);
+  bool setString(const char* value);
 
   std::string dump() const;
 
