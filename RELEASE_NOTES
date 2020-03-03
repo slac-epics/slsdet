@@ -1,17 +1,6 @@
 #
-# RELEASE_NOTES
+# SLAC RELEASE_NOTES
 #
-R1.3.1  2019-04-09      Michael C. Browne
-        Update versions and get rid of 32-bit build.
+R1.0.0 2020-03-03 Daniel Damiani
+  Intial release of module for communicating with the Jungfrau
 
-R1.1.0	2017-05-15	Bruce Hill
-	Convert to git workflow
-
-R1.0.7	2016-12-06	Michael C. Browne
-	Add PGP_writereg for one-off writes, don't die if we can't open a card.
-
-R1.0.6	2016-10-14	Michael C. Browne
-	Make sure *RBV PVs get timestamps and no udf alarms.
-
-R1.0.5	2016-09-22	Michael C. Browne
-	Added G3 support and v2 driver support.
