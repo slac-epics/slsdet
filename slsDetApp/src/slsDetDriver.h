@@ -32,6 +32,7 @@ protected:
   virtual void initialize();
   virtual const char* cacheStr(const char* str);
   virtual const char* cacheStr(const std::string& str);
+  virtual SlsDetMessage process(SlsDetMessage req);
   virtual SlsDetMessage checkOnline();
   virtual SlsDetMessage getHostname();
   virtual SlsDetMessage getDetectorsType();

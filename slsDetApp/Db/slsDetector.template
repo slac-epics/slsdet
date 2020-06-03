@@ -1,3 +1,12 @@
+record(bo, "$(SLSDET):$(MOD):ENABLED")
+{
+  field(DESC, "The module power on/off status")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_DET_ENABLED")
+  field(PINI, "YES")
+  field(FLNK, "$(SLSDET):$(MOD):DO_CONN_POLL")
+}
+
 record(bi,"$(SLSDET):$(MOD):CONN_STATUS")
 {
   field(DESC, "The connection status of the module")
@@ -7,27 +16,36 @@ record(bi,"$(SLSDET):$(MOD):CONN_STATUS")
   field(FLNK, "$(SLSDET):$(MOD):CONN_UPDATE")
 }
 
+record(calc, "$(SLSDET):$(MOD):DO_CONN_POLL")
+{
+  field(DESC, "Enable/Disable conn poll scan")
+  field(SCAN, "Passive")
+  field(CALC, "(A=1) && (B#1)")
+  field(INPA, "$(SLSDET):$(MOD):ENABLED")
+  field(INPB, "$(SLSDET):$(MOD):CONN_STATUS")
+}
+
 record(fanout, "$(SLSDET):$(MOD):CONN_UPDATE")
 {
   field(DESC,  "Process records on connection change")
   field(SCAN,  "Passive")
   field(SELM,  "All")
-  field(LNK0,  "$(SLSDET):$(MOD):HOSTNAME")
-  field(LNK1,  "$(SLSDET):$(MOD):TYPE")
-  field(LNK2,  "$(SLSDET):$(MOD):SERIAL_NUM")
-  field(LNK3,  "$(SLSDET):$(MOD):FIRMWARE_VER")
-  field(LNK4,  "$(SLSDET):$(MOD):SOFTWARE_VER")
+  field(LNK0,  "$(SLSDET):$(MOD):DO_CONN_POLL")
+  field(LNK1,  "$(SLSDET):$(MOD):HOSTNAME")
+  field(LNK2,  "$(SLSDET):$(MOD):TYPE")
+  field(LNK3,  "$(SLSDET):$(MOD):SERIAL_NUM")
+  field(LNK4,  "$(SLSDET):$(MOD):FIRMWARE_VER")
+  field(LNK5,  "$(SLSDET):$(MOD):SOFTWARE_VER")
 }
 
 record(longin, "$(SLSDET):$(MOD):CONN_POLL")
 {
   field(DESC, "Attempt to reconnect module if down")
-  field(SCAN, "5 second")
+  field(SCAN, "10 second")
   field(DTYP, "asynInt32")
   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_INIT")
-  field(DISV, "1")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(PINI, "YES")
+  field(DISV, "0")
+  field(SDIS, "$(SLSDET):$(MOD):DO_CONN_POLL")
 }
 
 record(stringin,"$(SLSDET):$(MOD):HOSTNAME")

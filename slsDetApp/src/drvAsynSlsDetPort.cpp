@@ -27,6 +27,7 @@ static void exitHandler(void *drvPvt) {
 #define SlsConnStatusString "SLS_CONN_STATUS"
 #define SlsHostNameString   "SLS_HOSTNAME"
 #define SlsDetTypeString    "SLS_DET_TYPE"
+#define SlsDetEnabledString "SLS_DET_ENABLED"
 /* Port driver version parameters */
 #define SlsDetSerialNumString   "SLS_SERIAL_NUMBER"
 #define SlsDetFirmwareVerString "SLS_FIRMWARE_VERSION"
@@ -128,6 +129,9 @@ const SlsDet::SlsDetEnumSet SlsDet::SlsDetEnums[] = {
   {SlsOnOffEnums,
    sizeofArray(SlsOnOffEnums),
    SlsSetTempControlString},
+  {SlsOnOffEnums,
+   sizeofArray(SlsOnOffEnums),
+   SlsDetEnabledString},
   {SlsOkTrippedEnums,
    sizeofArray(SlsOkTrippedEnums),
    SlsGetTempEventString},
@@ -181,6 +185,7 @@ SlsDet::SlsDet(const char *portName, const std::vector<std::string>& hostnames, 
   createParam(SlsConnStatusString,        asynParamInt32,   &_connStatusValue);
   createParam(SlsHostNameString,          asynParamOctet,   &_hostNameValue);
   createParam(SlsDetTypeString,           asynParamInt32,   &_detTypeValue);
+  createParam(SlsDetEnabledString,        asynParamInt32,   &_detEnabledValue);
   createParam(SlsDetSerialNumString,      asynParamOctet,   &_detSerialNumberValue);
   createParam(SlsDetFirmwareVerString,    asynParamOctet,   &_detFirmwareVersionValue);
   createParam(SlsDetSoftwareVerString,    asynParamOctet,   &_detSoftwareVersionValue);
@@ -234,58 +239,69 @@ asynStatus SlsDet::initialize(asynUser *pasynUser)
   int conn;
   int addr;
   int numDet;
+  int enabled;
   asynStatus status;
   SlsDetMessage reply;
   static const char *functionName = "initialize";
 
   status = getAddress(pasynUser, &addr); if (status != asynSuccess) return status;
 
-  asynPrint(pasynUser, ASYN_TRACE_FLOW,
-            "%s:%s, port=%s, address=%d attempting to connect detector: %s\n",
-            driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
+  getIntegerParam(addr, _detEnabledValue, &enabled);
+  if (!enabled) {
+    asynPrint(pasynUser, ASYN_TRACE_FLOW,
+              "%s:%s, port=%s, address=%d detector is offline, "
+              "so not attempting connection to detector: %s\n",
+              driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
+    status = asynDisabled;
+  } else {
 
-  if (!_dets[addr]) {
-    try {
-      _dets[addr] = new SlsDetDriver(_hostnames[addr], _id + addr, this->portName, addr);
-      /* Initialize the detector parameters */
-      setIntegerParam(addr, _connStatusValue, DISCONNECTED);
-      callParamCallbacks(addr);
-      setIntegerParam(_numDetValue, 0);
-      callParamCallbacks();
-    } catch (...) {
+    asynPrint(pasynUser, ASYN_TRACE_FLOW,
+              "%s:%s, port=%s, address=%d attempting to connect detector: %s\n",
+              driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
+
+    if (!_dets[addr]) {
+      try {
+        _dets[addr] = new SlsDetDriver(_hostnames[addr], _id + addr, this->portName, addr);
+        /* Initialize the detector parameters */
+        setIntegerParam(addr, _connStatusValue, DISCONNECTED);
+        callParamCallbacks(addr);
+        setIntegerParam(_numDetValue, 0);
+        callParamCallbacks();
+      } catch (...) {
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+                  "%s:%s, port=%s, address=%d failed to initialize detector: %s\n",
+                  driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
+        status = asynDisabled;
+      }
+    }
+
+    if (_dets[addr]) {
+      getIntegerParam(addr, _connStatusValue, &conn);
+      getIntegerParam(_numDetValue, &numDet);
+      if (!conn) {
+        reply = _dets[addr]->request(SlsDetMessage::CheckOnline, _timeout);
+        if (reply.mtype() == SlsDetMessage::Ok) {
+          pasynManager->exceptionConnect(pasynUser);
+          updateEnums(addr);
+          setIntegerParam(addr, _connStatusValue, CONNECTED);
+          callParamCallbacks(addr);
+          setIntegerParam(_numDetValue, ++numDet);
+          callParamCallbacks();
+          asynPrint(pasynUser, ASYN_TRACE_FLOW,
+              "%s:%s, port=%s, address=%d connected to detector: %s\n",
+              driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
+        } else {
+          asynPrint(pasynUser, ASYN_TRACE_ERROR,
+              "%s:%s, port=%s, address=%d failed to connect to detector: %s\n",
+              driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
+        }
+      }
+    } else if (status == asynSuccess) {
       asynPrint(pasynUser, ASYN_TRACE_ERROR,
-                "%s:%s, port=%s, address=%d failed to initialize detector: %s\n",
+                "%s:%s, port=%s, address=%d failed to initialize the detector interface: %s\n",
                 driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
       status = asynDisabled;
     }
-  }
-
-  if (_dets[addr]) {
-    getIntegerParam(addr, _connStatusValue, &conn);
-    getIntegerParam(_numDetValue, &numDet);
-    if (!conn) {
-      reply = _dets[addr]->request(SlsDetMessage::CheckOnline, _timeout);
-      if (reply.mtype() == SlsDetMessage::Ok) {
-        pasynManager->exceptionConnect(pasynUser);
-        updateEnums(addr);
-        setIntegerParam(addr, _connStatusValue, CONNECTED);
-        callParamCallbacks(addr);
-        setIntegerParam(_numDetValue, ++numDet);
-        callParamCallbacks();
-        asynPrint(pasynUser, ASYN_TRACE_FLOW,
-            "%s:%s, port=%s, address=%d connected to detector: %s\n",
-            driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
-      } else {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-            "%s:%s, port=%s, address=%d failed to connect to detector: %s\n",
-            driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
-      }
-    }
-  } else if (status == asynSuccess) {
-    asynPrint(pasynUser, ASYN_TRACE_ERROR,
-              "%s:%s, port=%s, address=%d failed to initialize the detector interface: %s\n",
-              driverName, functionName, this->portName, addr, _hostnames[addr].c_str());
-    status = asynDisabled;
   }
 
   return status;
@@ -658,6 +674,13 @@ asynStatus SlsDet::writeInt32(asynUser *pasynUser, epicsInt32 value)
     status = writeDetector(pasynUser, SlsDetMessage::WriteClockDivider, value);
   } else if (function == _setGainModeValue) {
     status = writeDetector(pasynUser, SlsDetMessage::WriteGainMode, value);
+  } else if (function == _detEnabledValue) {
+    setIntegerParam(addr, function, value);
+    callParamCallbacks(addr);
+    if ((value == OFF) && isConnected(addr)) {
+      // call unitialize
+      uninitialize(pasynUser);
+    }
   } else { // Other functions we call the base class method
     status = asynPortDriver::writeInt32(pasynUser, value);
   }

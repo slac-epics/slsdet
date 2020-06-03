@@ -86,6 +86,7 @@ protected:
   int _connStatusValue;
   int _hostNameValue;
   int _detTypeValue;
+  int _detEnabledValue;
   int _detSerialNumberValue;
   int _detFirmwareVersionValue;
   int _detSoftwareVersionValue;
