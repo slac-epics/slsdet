@@ -2,137 +2,216 @@ record(bo, "$(SLSDET):$(MOD):ENABLED")
 {
   field(DESC, "The module power on/off status")
   field(DTYP, "asynInt32")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_DET_ENABLED")
+  field(OUT,  "@asyn($(PORT))SLS_DET_ENABLED")
   field(PINI, "YES")
-  field(FLNK, "$(SLSDET):$(MOD):DO_CONN_POLL")
 }
 
-record(bi,"$(SLSDET):$(MOD):CONN_STATUS")
+record(longin, "$(SLSDET):$(MOD):SHMID")
 {
-  field(DESC, "The connection status of the module")
+  field(DESC, "The shared mem id of the module")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_CONN_STATUS")
-  field(FLNK, "$(SLSDET):$(MOD):CONN_UPDATE")
+  field(INP,  "@asyn($(PORT))SLS_SHM_ID")
 }
 
-record(calc, "$(SLSDET):$(MOD):DO_CONN_POLL")
+record(longin, "$(SLSDET):$(MOD):HEARTBEAT")
 {
-  field(DESC, "Enable/Disable conn poll scan")
-  field(SCAN, "Passive")
-  field(CALC, "(A=1) && (B#1)")
-  field(INPA, "$(SLSDET):$(MOD):ENABLED")
-  field(INPB, "$(SLSDET):$(MOD):CONN_STATUS")
-}
-
-record(fanout, "$(SLSDET):$(MOD):CONN_UPDATE")
-{
-  field(DESC,  "Process records on connection change")
-  field(SCAN,  "Passive")
-  field(SELM,  "All")
-  field(LNK0,  "$(SLSDET):$(MOD):DO_CONN_POLL")
-  field(LNK1,  "$(SLSDET):$(MOD):HOSTNAME")
-  field(LNK2,  "$(SLSDET):$(MOD):TYPE")
-  field(LNK3,  "$(SLSDET):$(MOD):SERIAL_NUM")
-  field(LNK4,  "$(SLSDET):$(MOD):FIRMWARE_VER")
-  field(LNK5,  "$(SLSDET):$(MOD):SOFTWARE_VER")
-}
-
-record(longin, "$(SLSDET):$(MOD):CONN_POLL")
-{
-  field(DESC, "Attempt to reconnect module if down")
-  field(SCAN, "10 second")
+  field(DESC, "The hearbeat from module")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_INIT")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):DO_CONN_POLL")
+  field(INP,  "@asyn($(PORT))SLS_HEARTBEAT")
 }
 
-record(stringin,"$(SLSDET):$(MOD):HOSTNAME")
+record(stringin, "$(SLSDET):$(MOD):HOSTNAME")
 {
   field(DESC, "The hostname of the module")
-  field(SCAN, "Passive")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_HOSTNAME")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_HOSTNAME")
 }
 
 record(mbbi, "$(SLSDET):$(MOD):TYPE")
 {
   field(DESC, "The detector type of the module")
-  field(SCAN, "Passive")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_DET_TYPE")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_DET_TYPE")
 }
 
-record(stringin,"$(SLSDET):$(MOD):SERIAL_NUM")
+record(longin, "$(SLSDET):$(MOD):MODULE_ID")
+{
+  field(DESC, "The id of the module")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_MODULE_ID")
+}
+
+record(stringin, "$(SLSDET):$(MOD):SERIAL_NUM")
 {
   field(DESC, "The serial number of the module")
-  field(SCAN, "Passive")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SERIAL_NUMBER")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_SERIAL_NUMBER")
 }
 
-record(stringin,"$(SLSDET):$(MOD):FIRMWARE_VER")
+record(stringin, "$(SLSDET):$(MOD):FIRMWARE_VER")
 {
   field(DESC, "The firmware version of the module")
-  field(SCAN, "Passive")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_FIRMWARE_VERSION")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_FIRMWARE_VERSION")
 }
 
-record(stringin,"$(SLSDET):$(MOD):SOFTWARE_VER")
+record(stringin, "$(SLSDET):$(MOD):SOFTWARE_VER")
 {
   field(DESC, "The software version of the module")
-  field(SCAN, "Passive")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_softWARE_VERSION")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_SOFTWARE_VERSION")
+}
+
+record(stringin, "$(SLSDET):$(MOD):HARDWARE_VER")
+{
+  field(DESC, "The hardware version of the module")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_HARDWARE_VERSION")
+}
+
+record(stringin, "$(SLSDET):$(MOD):KERNEL_VER")
+{
+  field(DESC, "The kernel version of the module")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_KERNEL_VERSION")
+}
+
+record(ai, "$(SLSDET):$(MOD):CHIP_VER")
+{
+  field(DESC, "The readout chip version")
+  field(PREC, "1")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT))SLS_CHIP_VERSION")
 }
 
 record(mbbi, "$(SLSDET):$(MOD):STATUS")
 {
   field(DESC, "The run status of the module")
-  field(SCAN, "1 second")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_RUN_STATUS")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_RUN_STATUS")
+}
+
+record(bi, "$(SLSDET):$(MOD):CONN_STATUS")
+{
+  field(DESC, "The connection status of the module")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_CONN_STATUS")
+}
+
+record(longin, "$(SLSDET):$(MOD):NEXT_FRAME")
+{
+  field(DESC, "The next frame number of the module")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_NEXT_FRAME")
 }
 
 record(bo, "$(SLSDET):$(MOD):CHIP_POWER")
 {
   field(DESC, "Module readout chip power")
   field(DTYP, "asynInt32")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_CHIP_POWER")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(OUT,  "@asyn($(PORT))SLS_SET_CHIP_POWER")
 }
 
 record(bi, "$(SLSDET):$(MOD):CHIP_POWER_RBV")
 {
   field(DESC, "Module readout chip power readback")
-  field(SCAN, "1 second")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_CHIP_POWER")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_GET_CHIP_POWER")
+}
+
+record(mbbo, "$(SLSDET):$(MOD):SPEED")
+{
+  field(DESC, "The module clock speed")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_SPEED")
+}
+
+record(mbbi, "$(SLSDET):$(MOD):SPEED_RBV")
+{
+  field(DESC, "The module clock speed readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_SPEED")
+}
+
+record(mbbo, "$(SLSDET):$(MOD):GAIN")
+{
+  field(DESC, "The module gain mode")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_GAIN")
+}
+
+record(mbbi, "$(SLSDET):$(MOD):GAIN_RBV")
+{
+  field(DESC, "The module gain mode readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_GAIN")
+}
+
+record(bo, "$(SLSDET):$(MOD):HIGH_GAIN0")
+{
+  field(DESC, "The module high gain0")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_HIGH_GAIN0")
+}
+
+record(bi, "$(SLSDET):$(MOD):HIGH_GAIN0_RBV")
+{
+  field(DESC, "The module high gain0 readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_HIGH_GAIN0")
+}
+
+record(longout, "$(SLSDET):$(MOD):ADC_PHASE")
+{
+  field(DESC, "The module adc phase shift")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_ADC_PHASE")
+}
+
+record(longin, "$(SLSDET):$(MOD):ADC_PHASE_RBV")
+{
+  field(DESC, "The module adc phase shift readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_ADC_PHASE")
+}
+
+record(ai, "$(SLSDET):$(MOD):FPGA_TEMP")
+{
+  field(DESC, "Temperature sensor on the module FPGA")
+  field(EGU,  "C")
+  field(PREC, "3")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT))SLS_FPGA_TEMP")
+}
+
+record(ai, "$(SLSDET):$(MOD):ADC_TEMP")
+{
+  field(DESC, "Temperature sensor on the module ADC")
+  field(EGU,  "C")
+  field(PREC, "3")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT))SLS_ADC_TEMP")
 }
 
 record(longout, "$(SLSDET):$(MOD):HV")
@@ -140,157 +219,377 @@ record(longout, "$(SLSDET):$(MOD):HV")
   field(DESC, "Module sensor bias voltage")
   field(EGU,  "V")
   field(DTYP, "asynInt32")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_HV")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(OUT,  "@asyn($(PORT))SLS_SET_HV")
 }
 
 record(longin, "$(SLSDET):$(MOD):HV_RBV")
 {
   field(DESC, "Module sensor bias voltage readback")
   field(EGU,  "V")
-  field(SCAN, "1 second")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_HV")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_GET_HV")
 }
 
 record(ao, "$(SLSDET):$(MOD):TEMP_THRESHOLD")
 {
   field(DESC, "Module shutdown temp")
-  field(EGU,  "degrees C")
+  field(EGU,  "C")
   field(PREC, "3")
-  field(DRVL, "0.0")
-  field(DRVH, "127.999")
   field(DTYP, "asynFloat64")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_TEMP_THRESHOLD")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(OUT,  "@asyn($(PORT))SLS_SET_TEMP_THRESHOLD")
 }
 
 record(ai, "$(SLSDET):$(MOD):TEMP_THRESHOLD_RBV")
 {
   field(DESC, "Module shutdown temp readback")
-  field(EGU,  "degrees C")
+  field(EGU,  "C")
   field(PREC, "3")
-  field(SCAN, "1 second")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynFloat64")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_TEMP_THRESHOLD")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_GET_TEMP_THRESHOLD")
 }
 
 record(bo, "$(SLSDET):$(MOD):TEMP_CONTROL")
 {
   field(DESC, "Module temp control on/off")
   field(DTYP, "asynInt32")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_TEMP_CONTROL")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(OUT,  "@asyn($(PORT))SLS_SET_TEMP_CONTROL")
 }
 
 record(bi, "$(SLSDET):$(MOD):TEMP_CONTROL_RBV")
 {
   field(DESC, "Module temp control on/off readback")
-  field(SCAN, "1 second")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_TEMP_CONTROL")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_GET_TEMP_CONTROL")
 }
 
 record(bo, "$(SLSDET):$(MOD):TEMP_EVENT")
 {
   field(DESC, "Module temp interlock clear")
   field(DTYP, "asynInt32")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_TEMP_EVENT")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(OUT,  "@asyn($(PORT))SLS_SET_TEMP_EVENT")
 }
 
 record(bi, "$(SLSDET):$(MOD):TEMP_EVENT_RBV")
 {
   field(DESC, "Module temp interlock readback")
-  field(SCAN, "1 second")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_TEMP_EVENT")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_GET_TEMP_EVENT")
 }
 
-record(ai,"$(SLSDET):$(MOD):FPGA_TEMP")
+record(ao, "$(SLSDET):$(MOD):EXPTIME")
 {
-  field(DESC, "Temperature sensor on the module FPGA")
-  field(EGU,  "degrees C")
-  field(PREC, "3")
-  field(SCAN, "1 second")
+  field(DESC, "Module exposure time")
+  field(EGU,  "s")
+  field(PREC, "6")
   field(DTYP, "asynFloat64")
-  field(INP, "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_FPGA_TEMP")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(OUT,  "@asyn($(PORT))SLS_SET_EXPTIME")
 }
 
-record(ai,"$(SLSDET):$(MOD):ADC_TEMP")
+record(ai, "$(SLSDET):$(MOD):EXPTIME_RBV")
 {
-  field(DESC, "Temperature sensor on the module ADC")
-  field(EGU,  "degrees C")
-  field(PREC, "3")
-  field(SCAN, "1 second")
+  field(DESC, "Module exposure time readback")
+  field(EGU,  "s")
+  field(PREC, "6")
+  field(SCAN, "I/O Intr")
   field(DTYP, "asynFloat64")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_ADC_TEMP")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(INP,  "@asyn($(PORT))SLS_GET_EXPTIME")
 }
 
-record(mbbi, "$(SLSDET):$(MOD):SPEED_RBV")
+record(ao, "$(SLSDET):$(MOD):PERIOD")
 {
-  field(DESC, "The module clock speed readback")
-  field(SCAN, "1 second")
-  field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_SPEED")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(DESC, "Module exposure period")
+  field(EGU,  "s")
+  field(PREC, "6")
+  field(DTYP, "asynFloat64")
+  field(OUT,  "@asyn($(PORT))SLS_SET_PERIOD")
 }
 
-record(mbbo, "$(SLSDET):$(MOD):SPEED")
+record(ai, "$(SLSDET):$(MOD):PERIOD_RBV")
 {
-  field(DESC, "The module clock speed")
-  field(DTYP, "asynInt32")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_SPEED")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(DESC, "Module exposure period readback")
+  field(EGU,  "s")
+  field(PREC, "6")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT))SLS_GET_PERIOD")
 }
 
-record(mbbi, "$(SLSDET):$(MOD):GAIN_RBV")
+record(ao, "$(SLSDET):$(MOD):DELAY")
 {
-  field(DESC, "The module gain mode readback")
-  field(SCAN, "1 second")
-  field(DTYP, "asynInt32")
-  field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_GET_GAIN")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(DESC, "Module trigger delay")
+  field(EGU,  "s")
+  field(PREC, "6")
+  field(DTYP, "asynFloat64")
+  field(OUT,  "@asyn($(PORT))SLS_SET_DELAY")
 }
 
-record(mbbo, "$(SLSDET):$(MOD):GAIN")
+record(ai, "$(SLSDET):$(MOD):DELAY_RBV")
 {
-  field(DESC, "The module gain mode")
+  field(DESC, "Module trigger delay readback")
+  field(EGU,  "s")
+  field(PREC, "6")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynFloat64")
+  field(INP,  "@asyn($(PORT))SLS_GET_DELAY")
+}
+
+record(mbbo, "$(SLSDET):$(MOD):TRIGGER_MODE")
+{
+  field(DESC, "Module trigger mode")
   field(DTYP, "asynInt32")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SLS_SET_GAIN")
-  field(DISV, "0")
-  field(SDIS, "$(SLSDET):$(MOD):CONN_STATUS")
-  field(DISS, "INVALID")
+  field(OUT,  "@asyn($(PORT))SLS_SET_TRIGGER")
+}
+
+record(mbbi, "$(SLSDET):$(MOD):TRIGGER_MODE_RBV")
+{
+  field(DESC, "Module trigger mode")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_TRIGGER")
+}
+
+record(longout, "$(SLSDET):$(MOD):NUM_FRAMES")
+{
+  field(DESC, "Number of frames per trigger")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_NUM_FRAMES")
+}
+
+record(longin, "$(SLSDET):$(MOD):NUM_FRAMES_RBV")
+{
+  field(DESC, "Number of frames per trigger readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_NUM_FRAMES")
+}
+
+record(longout, "$(SLSDET):$(MOD):NUM_TRIGGERS")
+{
+  field(DESC, "Num triggers per acquisition")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_NUM_TRIGGERS")
+}
+
+record(longin, "$(SLSDET):$(MOD):NUM_TRIGGERS_RBV")
+{
+  field(DESC, "Num triggers per acquisition readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_NUM_TRIGGERS")
+}
+
+record(longout, "$(SLSDET):$(MOD):NUM_SFP")
+{
+  field(DESC, "Number of active SFPs")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_NUM_SFP")
+}
+
+record(longin, "$(SLSDET):$(MOD):NUM_SFP_RBV")
+{
+  field(DESC, "Number of active SFPs readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_NUM_SFP")
+}
+
+record(bo, "$(SLSDET):$(MOD):ACTIVE_SFP")
+{
+  field(DESC, "Selected SFP")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_ACT_SFP")
+}
+
+record(bi, "$(SLSDET):$(MOD):ACTIVE_SFP_RBV")
+{
+  field(DESC, "Seleted SFP readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_ACT_SFP")
+}
+
+record(longout, "$(SLSDET):$(MOD):DST_PORT")
+{
+  field(DESC, "UDP dest port")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_DST_PORT")
+}
+
+record(longin, "$(SLSDET):$(MOD):DST_PORT_RBV")
+{
+  field(DESC, "UDP dest port readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_DST_PORT")
+}
+
+record(longout, "$(SLSDET):$(MOD):DST_PORT2")
+{
+  field(DESC, "UDP dest port2")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_DST_PORT2")
+}
+
+record(longin, "$(SLSDET):$(MOD):DST_PORT2_RBV")
+{
+  field(DESC, "UDP dest port2 readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_DST_PORT2")
+}
+
+record(longout, "$(SLSDET):$(MOD):TX_DELAY")
+{
+  field(DESC, "TX delay of frame (ms)")
+  field(EGU,  "ms")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_TX_DELAY")
+}
+
+record(longin, "$(SLSDET):$(MOD):TX_DELAY_RBV")
+{
+  field(DESC, "TX delay of frame (ms) readback")
+  field(EGU,  "s")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_TX_DELAY")
+}
+
+record(bo, "$(SLSDET):$(MOD):FLOW_CONTROL")
+{
+  field(DESC, "Flow control status")
+  field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT))SLS_SET_FLOW_CTRL")
+}
+
+record(bi, "$(SLSDET):$(MOD):FLOW_CONTROL_RBV")
+{
+  field(DESC, "Flow control status readback ")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynInt32")
+  field(INP,  "@asyn($(PORT))SLS_GET_FLOW_CTRL")
+}
+
+record(stringout, "$(SLSDET):$(MOD):SRC_IP")
+{
+  field(DESC, "UDP first src ip")
+  field(DTYP, "asynOctetWrite")
+  field(OUT,  "@asyn($(PORT))SLS_SET_SRC_IP")
+}
+
+record(stringin, "$(SLSDET):$(MOD):SRC_IP_RBV")
+{
+  field(DESC, "UDP first src ip readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_GET_SRC_IP")
+}
+
+record(stringout, "$(SLSDET):$(MOD):SRC_IP2")
+{
+  field(DESC, "UDP second src ip")
+  field(DTYP, "asynOctetWrite")
+  field(OUT,  "@asyn($(PORT))SLS_SET_SRC_IP2")
+}
+
+record(stringin, "$(SLSDET):$(MOD):SRC_IP2_RBV")
+{
+  field(DESC, "UDP second src ip readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_GET_SRC_IP2")
+}
+
+record(stringout, "$(SLSDET):$(MOD):SRC_MAC")
+{
+  field(DESC, "UDP first src mac")
+  field(DTYP, "asynOctetWrite")
+  field(OUT,  "@asyn($(PORT))SLS_SET_SRC_MAC")
+}
+
+record(stringin, "$(SLSDET):$(MOD):SRC_MAC_RBV")
+{
+  field(DESC, "UDP first src mac readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_GET_SRC_MAC")
+}
+
+record(stringout, "$(SLSDET):$(MOD):SRC_MAC2")
+{
+  field(DESC, "UDP second src mac")
+  field(DTYP, "asynOctetWrite")
+  field(OUT,  "@asyn($(PORT))SLS_SET_SRC_MAC2")
+}
+
+record(stringin, "$(SLSDET):$(MOD):SRC_MAC2_RBV")
+{
+  field(DESC, "UDP second src mac readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_GET_SRC_MAC2")
+}
+
+record(stringout, "$(SLSDET):$(MOD):DEST_IP")
+{
+  field(DESC, "UDP first dest ip")
+  field(DTYP, "asynOctetWrite")
+  field(OUT,  "@asyn($(PORT))SLS_SET_DST_IP")
+}
+
+record(stringin, "$(SLSDET):$(MOD):DEST_IP_RBV")
+{
+  field(DESC, "UDP first dest ip readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_GET_DST_IP")
+}
+
+record(stringout, "$(SLSDET):$(MOD):DEST_IP2")
+{
+  field(DESC, "UDP second dest ip")
+  field(DTYP, "asynOctetWrite")
+  field(OUT,  "@asyn($(PORT))SLS_SET_DST_IP2")
+}
+
+record(stringin, "$(SLSDET):$(MOD):DEST_IP2_RBV")
+{
+  field(DESC, "UDP second dest ip readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_GET_DST_IP2")
+}
+
+record(stringout, "$(SLSDET):$(MOD):DEST_MAC")
+{
+  field(DESC, "UDP first dest mac")
+  field(DTYP, "asynOctetWrite")
+  field(OUT,  "@asyn($(PORT))SLS_SET_DST_MAC")
+}
+
+record(stringin, "$(SLSDET):$(MOD):DEST_MAC_RBV")
+{
+  field(DESC, "UDP first dest mac readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_GET_DST_MAC")
+}
+
+record(stringout, "$(SLSDET):$(MOD):DEST_MAC2")
+{
+  field(DESC, "UDP second dest mac")
+  field(DTYP, "asynOctetWrite")
+  field(OUT,  "@asyn($(PORT))SLS_SET_DST_MAC2")
+}
+
+record(stringin, "$(SLSDET):$(MOD):DEST_MAC2_RBV")
+{
+  field(DESC, "UDP second dest mac readback")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP,  "@asyn($(PORT))SLS_GET_DST_MAC2")
 }
