@@ -6,16 +6,14 @@ include $(TOP)/configure/CONFIG
 
 LIBRARY_IOC += slsDet
 
-INC += slsDetMessage.h
-INC += slsDetDriver.h
+USR_CXXFLAGS_Linux += -std=c++11
+
 INC += drvAsynSlsDetPort.h
 
-LIB_SRCS += slsDetMessage.cpp
-LIB_SRCS += slsDetDriver.cpp
 LIB_SRCS += drvAsynSlsDetPort.cpp
 
 LIB_LIBS += SlsDetector
-LIB_LIBS += SlsReceiver
+LIB_LIBS += SlsSupport
 LIB_LIBS += asyn
 LIB_LIBS += $(EPICS_BASE_IOC_LIBS)
 

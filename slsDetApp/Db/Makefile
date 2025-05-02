@@ -8,7 +8,7 @@ include $(TOP)/configure/CONFIG
 # databases, templates, substitutions like this
 
 DB += slsDetector.template
-DB += slsMultiDetector.template
+DB += slsDetectorPower.template
 
 include $(TOP)/configure/RULES
 #----------------------------------------

@@ -15,18 +15,18 @@ can be obtained from here: https://github.com/slsdetectorgroup/slsDetectorPackag
 
 SlsDetectorPackage Version
 ---------------------------
-This module is built against version 4.1.1 of the slsDetectorPackage.
+This module is built against version 9.0.0 of the slsDetectorPackage.
 
 EPICS Versions:
 --------------
 This module has currently been built and tested at SLAC with EPICS 3.15.5 and
 EPICS R7.0.2. The module also depends on asyn and has been tested against asyn
-4.32 and higher.
+4.39 and higher.
 
 Operating System:
 -----------------
-This driver has been tested for rhel6-x86_64 on RHEL-6 and for rhel7-x86_64
-on RHEL-7.
+This driver has been tested for rhel7-x86_64 on RHEL-7 and for rocky9-x86_64
+on Rocky-9.
 
 How to use this module in your IOC:
 -----------------------------------
@@ -39,38 +39,55 @@ SLSDET=$(EPICS_MODULES)/slsdet/$(SLSDET_MODULE_VERSION)
 <appName>_DBD += slsDetSupport.dbd
 <appName>_LIBS += slsDet
 <appName>_LIBS += SlsDetector
-<appName>_LIBS += SlsReceiver
+<appName>_LIBS += SlsSupport
 <appName>_LIBS += zmq
+<appName>_LIBS += md5sls
 <appName>_LIBS += asyn
 
-3. Create a substitutions file for generating a db file from the templates
-included in the module. Below is an example substitutions file for a detector
-with two modules:
+3. Older versions of gcc (e.g. 4.8.5) may need the following line in your <appName>/src/Makefile:
+USR_CXXFLAGS_Linux += -std=c++11
+USR_LDFLAGS_Linux += -flto
 
-file slsMultiDetector.template
-{
-    pattern
-    { SLSDET      PORT    }
-    { $(SLSDET),  $(PORT) }
-}
+4. Create a substitutions file for generating a db file from the templates
+included in the module. Below is an example substitutions file for a module:
 
 file slsDetector.template
 {
     pattern
-    { SLSDET      MOD   PORT      ADDR, TIMEOUT     }
-    { $(SLSDET),  MOD0, $(PORT),  0,    $(TIMEOUT)  }
-    { $(SLSDET),  MOD1, $(PORT),  1,    $(TIMEOUT)  }
+    { SLSDET      MOD     PORT    }
+    { $(SLSDET),  $(MOD), $(PORT) }
 }
 
 4. Add the following lines in your iocBoot/ioc<iocName>/st.cmd:
-SlsDetConfigure( "TST:JF512K:CTRL", "det-jungfrau-31+", "0", "0.5" )
+SlsDetConfigure( "TST:JF512K:MOD:00", "det-jungfrau-31", "0", "0" "30.0" )
 where the parameters are:
 - asyn port name: you'll need to pass this to your db file
-- detector hostnames: a '+' delimited list of the hostname/ip of all the
-  tiles in the detector
+- detector hostname: hostname/ip of the module
 - the internal slsDetectorPackage id: this can be any arbitrary integer, but
   it needs to be unique (at least on the machine the IOC is running on) since
   the slsDetectorPackage is using shared memory that it names based on that id
-- the timeout in seconds for asyn read/writes
+- the index of the module within the detector (if it is a multi-panel detector)
+- the approx time it takes for the module to boot (only useful if using power on integration)
 
 Also remember to load the db file you made!
+
+5. If you want the module to asyn driver to be aware of the power state of the detector,
+(to avoid log spam about pointless failed connection attempts) then there is DB template
+provided for this. It wants three PVs:
+- Power supply switch PV
+- Power supply switch readback PV (just make this the same as the first if there is no readback)
+- Enable signal PV (for modules where the enable pin is jumpered to +12V power pin just use the supply readback).
+
+Below is an example substitution file for using this with powerctrl board the 4M and 16M have:
+
+file slsDetectorPower.template
+{
+    pattern
+    { SLSDET      MOD     SWITCH,         READY,              OUTPUT                      }
+    { $(SLSDET),  $(MOD), $(JFPWR):STATE, $(JFPWR):STATE_RBV, $(JFPWR):$(CHAN):ENABLE_RBV }
+}
+
+The DB load in iocsh would then look like this (where JFPWR is the base PV and CHAN is one with the module enable signal):
+
+dbLoadRecords( "db/slsDetector.db", "SLSDET=MFX:JF16M:MOD,MOD=00,PORT=MFX:JF16M:MOD:00" )
+dbLoadRecords( "db/slsDetectorPower.db", "SLSDET=MFX:JF16M:MOD,MOD=00,JFPWR=MFX:JF16M:PWR,CHAN=MOD13")
