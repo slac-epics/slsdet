@@ -111,11 +111,11 @@ record(bi, "$(SLSDET):$(MOD):CONN_STATUS")
   field(INP,  "@asyn($(PORT))SLS_CONN_STATUS")
 }
 
-record(longin, "$(SLSDET):$(MOD):NEXT_FRAME")
+record(int64in, "$(SLSDET):$(MOD):NEXT_FRAME")
 {
   field(DESC, "The next frame number of the module")
   field(SCAN, "I/O Intr")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(INP,  "@asyn($(PORT))SLS_NEXT_FRAME")
 }
 
@@ -352,33 +352,33 @@ record(mbbi, "$(SLSDET):$(MOD):TRIGGER_MODE_RBV")
   field(INP,  "@asyn($(PORT))SLS_GET_TRIGGER")
 }
 
-record(longout, "$(SLSDET):$(MOD):NUM_FRAMES")
+record(int64out, "$(SLSDET):$(MOD):NUM_FRAMES")
 {
   field(DESC, "Number of frames per trigger")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(OUT,  "@asyn($(PORT))SLS_SET_NUM_FRAMES")
 }
 
-record(longin, "$(SLSDET):$(MOD):NUM_FRAMES_RBV")
+record(int64in, "$(SLSDET):$(MOD):NUM_FRAMES_RBV")
 {
   field(DESC, "Number of frames per trigger readback")
   field(SCAN, "I/O Intr")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(INP,  "@asyn($(PORT))SLS_GET_NUM_FRAMES")
 }
 
-record(longout, "$(SLSDET):$(MOD):NUM_TRIGGERS")
+record(int64out, "$(SLSDET):$(MOD):NUM_TRIGGERS")
 {
   field(DESC, "Num triggers per acquisition")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(OUT,  "@asyn($(PORT))SLS_SET_NUM_TRIGGERS")
 }
 
-record(longin, "$(SLSDET):$(MOD):NUM_TRIGGERS_RBV")
+record(int64in, "$(SLSDET):$(MOD):NUM_TRIGGERS_RBV")
 {
   field(DESC, "Num triggers per acquisition readback")
   field(SCAN, "I/O Intr")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(INP,  "@asyn($(PORT))SLS_GET_NUM_TRIGGERS")
 }
 

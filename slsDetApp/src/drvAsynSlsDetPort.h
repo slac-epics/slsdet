@@ -30,6 +30,7 @@ public:
 
   /* These are the methods that we override from asynPortDriver */
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+  virtual asynStatus writeInt64(asynUser *pasynUser, epicsInt64 value);
   virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
   virtual asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t nChars, size_t *nActual);
   virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], int values[],
@@ -51,14 +52,18 @@ protected:
   virtual void writeStringToDetector(SlsDetUtils::Feature feature,
                                      const std::string& value);
   virtual void writeIntToDetector(SlsDetUtils::Feature feature,
-                                  int value);
+                                  epicsInt32 value);
+  virtual void writeInt64ToDetector(SlsDetUtils::Feature feature,
+                                    epicsInt64 value);
   virtual void writeDoubleToDetector(SlsDetUtils::Feature feature,
                                      double value);
 
   virtual bool readStringFromDetector(SlsDetUtils::Feature feature,
                                       std::string& value);
   virtual bool readIntFromDetector(SlsDetUtils::Feature feature,
-                                   int& value);
+                                   epicsInt32& value);
+  virtual bool readInt64FromDetector(SlsDetUtils::Feature feature,
+                                     epicsInt64& value);
   virtual bool readDoubleFromDetector(SlsDetUtils::Feature feature,
                                       double& value);
 
@@ -107,6 +112,7 @@ private:
   std::string                     _hostname;
   std::unique_ptr<sls::Detector>  _det;
   SlsDetUtils::IntFeatureMap      _intFeatures;
+  SlsDetUtils::Int64FeatureMap    _int64Features;
   SlsDetUtils::DoubleFeatureMap   _doubleFeatures;
   SlsDetUtils::StringFeatureMap   _stringFeatures;
 

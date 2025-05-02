@@ -140,8 +140,10 @@ private:
   T       _value;
 };
 
-typedef FeatureInfo<int> IntFeature;
+typedef FeatureInfo<epicsInt32> IntFeature;
 typedef std::map<int, IntFeature> IntFeatureMap;
+typedef FeatureInfo<epicsInt64> Int64Feature;
+typedef std::map<int, Int64Feature> Int64FeatureMap;
 typedef FeatureInfo<double> DoubleFeature;
 typedef std::map<int, DoubleFeature> DoubleFeatureMap;
 typedef FeatureInfo<std::string> StringFeature;

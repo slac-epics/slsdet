@@ -270,8 +270,8 @@ static void slsDetStatusTaskC(void *drvPvt)
   */
 SlsDet::SlsDet(const char *portName, const std::string& hostname, int id, double boot)
   : asynPortDriver(portName, 1,
-      asynEnumMask | asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask, // Interfaces that we implement
-      asynEnumMask | asynInt32Mask | asynFloat64Mask | asynOctetMask,                   // Interfaces that do callbacks
+      asynEnumMask | asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask, // Interfaces that we implement
+      asynEnumMask | asynInt32Mask | asynInt64Mask | asynFloat64Mask | asynOctetMask,                   // Interfaces that do callbacks
       ASYN_MULTIDEVICE | ASYN_CANBLOCK, 1, /* ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=1, autoConnect=1 */
       0, 0),  /* Default priority and stack size */
     _id(id),
@@ -294,7 +294,7 @@ SlsDet::SlsDet(const char *portName, const std::string& hostname, int id, double
   createParam(SlsConnStatusString,        asynParamInt32,   &_connStatusParam);
   /* Add the features that read/write to the module */
   addFeature(SlsRunStatusString,          asynParamInt32,   SlsDetUtils::DETSTATUS,   false, false);
-  addFeature(SlsNextFrameString,          asynParamInt32,   SlsDetUtils::NEXTFRAME,   false, false);
+  addFeature(SlsNextFrameString,          asynParamInt64,   SlsDetUtils::NEXTFRAME,   false, false);
   /* Read-only constant features -> only read once on connect */
   addFeature(SlsHostNameString,           asynParamOctet,   SlsDetUtils::HOSTNAME,    true,  false);
   addFeature(SlsDetTypeString,            asynParamInt32,   SlsDetUtils::DETTYPE,     true,  false);
@@ -336,10 +336,10 @@ SlsDet::SlsDet(const char *portName, const std::string& hostname, int id, double
   addFeature(SlsGetDelayString,           asynParamFloat64, SlsDetUtils::DELAY,       false, false);
   addFeature(SlsSetTriggerModeString,     asynParamInt32,   SlsDetUtils::TRIGMODE,    false, true );
   addFeature(SlsGetTriggerModeString,     asynParamInt32,   SlsDetUtils::TRIGMODE,    false, false);
-  addFeature(SlsSetNumFramesString,       asynParamInt32,   SlsDetUtils::NUMFRAMES,   false, true );
-  addFeature(SlsGetNumFramesString,       asynParamInt32,   SlsDetUtils::NUMFRAMES,   false, false);
-  addFeature(SlsSetNumTriggersString,     asynParamInt32,   SlsDetUtils::NUMTRIG,     false, true );
-  addFeature(SlsGetNumTriggersString,     asynParamInt32,   SlsDetUtils::NUMTRIG,     false, false);
+  addFeature(SlsSetNumFramesString,       asynParamInt64,   SlsDetUtils::NUMFRAMES,   false, true );
+  addFeature(SlsGetNumFramesString,       asynParamInt64,   SlsDetUtils::NUMFRAMES,   false, false);
+  addFeature(SlsSetNumTriggersString,     asynParamInt64,   SlsDetUtils::NUMTRIG,     false, true );
+  addFeature(SlsGetNumTriggersString,     asynParamInt64,   SlsDetUtils::NUMTRIG,     false, false);
   /* Data interface configuration parameters */
   addFeature(SlsSetNumSfpString,          asynParamInt32,   SlsDetUtils::NUMINTFACE,  false, true );
   addFeature(SlsGetNumSfpString,          asynParamInt32,   SlsDetUtils::NUMINTFACE,  false, false);
@@ -436,6 +436,8 @@ void SlsDet::addFeature(const char *name,
   createParam(name, type, &index);
   if (type == asynParamInt32) {
     _intFeatures.emplace(index, SlsDetUtils::IntFeature(feature, init, writable));
+  } else if (type == asynParamInt64) {
+    _int64Features.emplace(index, SlsDetUtils::Int64Feature(feature, init, writable));
   } else if (type == asynParamFloat64) {
     _doubleFeatures.emplace(index, SlsDetUtils::DoubleFeature(feature, init, writable));
   } else if (type == asynParamOctet) {
@@ -515,7 +517,7 @@ void SlsDet::writeStringToDetector(SlsDetUtils::Feature feature, const std::stri
   }
 }
 
-void SlsDet::writeIntToDetector(SlsDetUtils::Feature feature, int value)
+void SlsDet::writeIntToDetector(SlsDetUtils::Feature feature, epicsInt32 value)
 {
   static const char *functionName = "writeIntToDetector";
 
@@ -589,20 +591,6 @@ void SlsDet::writeIntToDetector(SlsDetUtils::Feature feature, int value)
                 driverName, functionName, this->portName,
                 _hostname.c_str(), sls::ToString(trigger_mode).c_str());
       _det->setTimingMode(trigger_mode);
-    } else if (feature == SlsDetUtils::NUMFRAMES) {
-      // write the number of frames per trigger
-      asynPrint(pasynUserSelf, ASYN_TRACEIO_DEVICE,
-                "%s:%s: port=%s hostname=%s -> setNumberOfFrames(%d)\n",
-                driverName, functionName, this->portName,
-                _hostname.c_str(), value);
-      _det->setNumberOfFrames(value);
-    } else if (feature == SlsDetUtils::NUMTRIG) {
-      // write the number of triggers per acquisition
-      asynPrint(pasynUserSelf, ASYN_TRACEIO_DEVICE,
-                "%s:%s: port=%s hostname=%s -> setNumberOfTriggers(%d)\n",
-                driverName, functionName, this->portName,
-                _hostname.c_str(), value);
-      _det->setNumberOfTriggers(value);
     } else if (feature == SlsDetUtils::NUMINTFACE) {
       // write the number of active sfp+ slots to module
       asynPrint(pasynUserSelf, ASYN_TRACEIO_DEVICE,
@@ -647,6 +635,51 @@ void SlsDet::writeIntToDetector(SlsDetUtils::Feature feature, int value)
                 driverName, functionName, this->portName,
                 _hostname.c_str(), value);
       _det->setTenGigaFlowControl(value);
+    } else {
+      std::string feature_name = SlsDetUtils::FeatureName(feature);
+      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s, port=%s hostname=%s - unexpected feature %s\n",
+                driverName, functionName, this->portName,
+                _hostname.c_str(), feature_name.c_str());
+    }
+  } catch (const sls::SocketError &err) {
+    std::string feature_name = SlsDetUtils::FeatureName(feature);
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s, port=%s hostname=%s feature=%s - %s\n",
+              driverName, functionName, this->portName,
+              _hostname.c_str(), feature_name.c_str(),
+              err.what());
+    // rethrow connection errors to outer-handler
+    throw;
+  } catch (const sls::RuntimeError &err) {
+    std::string feature_name = SlsDetUtils::FeatureName(feature);
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s, port=%s hostname=%s feature=%s - %s\n",
+              driverName, functionName, this->portName,
+              _hostname.c_str(), feature_name.c_str(),
+              err.what());
+  }
+}
+
+void SlsDet::writeInt64ToDetector(SlsDetUtils::Feature feature, epicsInt64 value)
+{
+  static const char *functionName = "writeInt64ToDetector";
+
+  try {
+    if (feature == SlsDetUtils::NUMFRAMES) {
+      // write the number of frames per trigger
+      asynPrint(pasynUserSelf, ASYN_TRACEIO_DEVICE,
+                "%s:%s: port=%s hostname=%s -> setNumberOfFrames(%lld)\n",
+                driverName, functionName, this->portName,
+                _hostname.c_str(), value);
+      _det->setNumberOfFrames(value);
+    } else if (feature == SlsDetUtils::NUMTRIG) {
+      // write the number of triggers per acquisition
+      asynPrint(pasynUserSelf, ASYN_TRACEIO_DEVICE,
+                "%s:%s: port=%s hostname=%s -> setNumberOfTriggers(%lld)\n",
+                driverName, functionName, this->portName,
+                _hostname.c_str(), value);
+      _det->setNumberOfTriggers(value);
     } else {
       std::string feature_name = SlsDetUtils::FeatureName(feature);
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -810,7 +843,7 @@ bool SlsDet::readStringFromDetector(SlsDetUtils::Feature feature, std::string& v
   return status;
 }
 
-bool SlsDet::readIntFromDetector(SlsDetUtils::Feature feature, int& value)
+bool SlsDet::readIntFromDetector(SlsDetUtils::Feature feature, epicsInt32& value)
 {
   bool status = true;
   static const char *functionName = "readIntFromDetector";
@@ -822,8 +855,6 @@ bool SlsDet::readIntFromDetector(SlsDetUtils::Feature feature, int& value)
       value = _det->getModuleId().squash();
     } else if (feature == SlsDetUtils::DETSTATUS) {
       value = _det->getDetectorStatus().squash();
-    } else if (feature == SlsDetUtils::NEXTFRAME) {
-      value = _det->getNextFrameNumber().squash();
     } else if (feature == SlsDetUtils::TEMPCONTROL) {
       value = _det->getTemperatureControl().squash();
     } else if (feature == SlsDetUtils::TEMPEVENT) {
@@ -858,6 +889,47 @@ bool SlsDet::readIntFromDetector(SlsDetUtils::Feature feature, int& value)
       value = _det->getTransmissionDelayFrame().squash();
     } else if (feature == SlsDetUtils::FLOWCONTROL) {
       value = _det->getTenGigaFlowControl().squash();
+    } else {
+      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s, port=%s hostname=%s - unexpected feature %s\n",
+                driverName, functionName, this->portName,
+                _hostname.c_str(), SlsDetUtils::FeatureName(feature).c_str());
+      status = false;
+    }
+  } catch (const sls::SocketError &err) {
+    std::string feature_name = SlsDetUtils::FeatureName(feature);
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s, port=%s hostname=%s feature=%s - %s\n",
+              driverName, functionName, this->portName,
+              _hostname.c_str(), feature_name.c_str(),
+              err.what());
+    // rethrow connection errors to outer-handler
+    throw;
+  } catch (const sls::RuntimeError &err) {
+    std::string feature_name = SlsDetUtils::FeatureName(feature);
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s, port=%s hostname=%s feature=%s - %s\n",
+              driverName, functionName, this->portName,
+              _hostname.c_str(), feature_name.c_str(),
+              err.what());
+    status = false;
+  }
+
+  return status;
+}
+
+bool SlsDet::readInt64FromDetector(SlsDetUtils::Feature feature, epicsInt64& value)
+{
+  bool status = true;
+  static const char *functionName = "readInt64FromDetector";
+
+  try {
+    if (feature == SlsDetUtils::NEXTFRAME) {
+      value = _det->getNextFrameNumber().squash();
+    } else if (feature == SlsDetUtils::NUMFRAMES) {
+      value = _det->getNumberOfFrames().squash();
+    } else if (feature == SlsDetUtils::NUMTRIG) {
+      value = _det->getNumberOfTriggers().squash();
     } else {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s, port=%s hostname=%s - unexpected feature %s\n",
@@ -1125,6 +1197,66 @@ asynStatus SlsDet::writeInt32(asynUser *pasynUser, epicsInt32 value)
   return status;
 }
 
+asynStatus SlsDet::writeInt64(asynUser *pasynUser, epicsInt64 value)
+{
+  const char* name = NULL;
+  int function = pasynUser->reason;
+  asynStatus status = asynSuccess;
+  static const char *functionName = "writeInt64";
+
+  getParamName(function, &name);
+  if (name) {
+    asynPrint(pasynUser, ASYN_TRACEIO_DEVICE,
+              "%s:%s: port=%s received write request (%lld) for parameter: %s\n",
+              driverName, functionName, this->portName, value, name);
+  } else {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+              "%s:%s: port=%s received write request for parameter with no name\n",
+              driverName, functionName, this->portName);
+    return asynError;
+  }
+
+  /* Only allow writes to the enable parameter if module is not connected */
+  if (!isConnected() && (function != _enabledParam)) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+              "%s:%s: error, status=%d param=%s, value=%lld: can't write to detector is not connected!\n",
+              driverName, functionName, status, name, value);
+    return asynError;
+  }
+
+  /* Save backup of old value and set the parameter */
+  epicsInt64 oldValue;
+  getInteger64Param(function, &oldValue);
+  status = setInteger64Param(function, value);
+
+  /* Search the parameter map for matching parameters */
+  auto it = _int64Features.find(function);
+  if (it != _int64Features.end()) {
+    if (it->second.isWritable()) {
+      it->second.setRequested();
+    } else {
+      status = asynError;
+    }
+  } else { // Other functions we call the base class method
+    status = asynPortDriver::writeInt64(pasynUser, value);
+  }
+
+  if (status != asynSuccess) {
+    asynPrint(pasynUser, ASYN_TRACE_ERROR,
+              "%s:%s: error, status=%d param=%s, value=%lld: param not writable!\n",
+              driverName, functionName, status, name, value);
+    setInteger64Param(function, oldValue);
+  }
+
+  /* Do callbacks so higher layers see any changes */
+  callParamCallbacks();
+
+  /* Send a signal to the poller task which will make it do a poll, and switch to the fast poll rate */
+  epicsEventSignal(statusEvent);
+
+  return status;
+}
+
 asynStatus SlsDet::writeOctet(asynUser *pasynUser, const char *value, size_t nChars, size_t *nActual)
 {
   const char* name = NULL;
@@ -1312,11 +1444,31 @@ void SlsDet::statusTask(void)
       }
 
       if (kv.second.isRequested()) {
-        int temp_val;
+        epicsInt32 temp_val;
         // clear the requested write flag
         kv.second.clearRequested();
         // read the value from parameter db
         getIntegerParam(kv.first, &temp_val);
+        // cache value and set pending module write flag
+        kv.second.write(temp_val);
+        kv.second.setPending();
+      }
+    }
+    // Look for requested writes in the int64 features
+    for (auto& kv : _int64Features) {
+      // clear old pending flags
+      kv.second.clearPending();
+      // if the feature is not writable then ignore it
+      if (!kv.second.isWritable()) {
+        continue;
+      }
+
+      if (kv.second.isRequested()) {
+        epicsInt64 temp_val;
+        // clear the requested write flag
+        kv.second.clearRequested();
+        // read the value from parameter db
+        getInteger64Param(kv.first, &temp_val);
         // cache value and set pending module write flag
         kv.second.write(temp_val);
         kv.second.setPending();
@@ -1395,8 +1547,22 @@ void SlsDet::statusTask(void)
             writeIntToDetector(kv.second.feature(), kv.second.read());
           }
         } else if (init || !kv.second.isInitOnly()) {
-          int temp_val;
+          epicsInt32 temp_val;
           if (readIntFromDetector(kv.second.feature(), temp_val)) {
+            kv.second.write(temp_val);
+            kv.second.setPending();
+          }
+        }
+      }
+      // Do the i/o to the module for the int64 features
+      for (auto& kv : _int64Features) {
+        if (kv.second.isWritable()) {
+          if (kv.second.isPending()) {
+            writeInt64ToDetector(kv.second.feature(), kv.second.read());
+          }
+        } else if (init || !kv.second.isInitOnly()) {
+          epicsInt64 temp_val;
+          if (readInt64FromDetector(kv.second.feature(), temp_val)) {
             kv.second.write(temp_val);
             kv.second.setPending();
           }
@@ -1451,6 +1617,19 @@ void SlsDet::statusTask(void)
       // pending flag is set on successful read from module
       if (kv.second.isPending()) {
         setIntegerParam(kv.first, kv.second.read());
+      }
+    }
+    // Loop over the integer features
+    for (const auto& kv : _int64Features) {
+      /* if the feature is writable then ignore it.
+       * Also only do init only ones on connect */
+      if (kv.second.isWritable() || (kv.second.isInitOnly() && !init)) {
+        continue;
+      }
+
+      // pending flag is set on successful read from module
+      if (kv.second.isPending()) {
+        setInteger64Param(kv.first, kv.second.read());
       }
     }
     //Loop over the double features
