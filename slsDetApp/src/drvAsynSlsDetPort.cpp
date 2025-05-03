@@ -277,6 +277,7 @@ SlsDet::SlsDet(const char *portName, const std::string& hostname, int id, double
     _id(id),
     _exiting(false),
     _exited(0),
+    _initialized(false),
     _pollingPeriod(1.0), // seconds
     _fastPollingPeriod(0.1), // seconds
     _connPollingPeriod(boot), // seconds
@@ -1054,18 +1055,24 @@ bool SlsDet::connectDetector()
             driverName, functionName, this->portName, _hostname.c_str());
 
   try {
-    std::vector<std::string> hostnames {_hostname};
-    try {
-      _det->setHostname(hostnames);
-    } catch (const sls::RuntimeError &err) {
-      auto detstat = _det->getDetectorStatus();
-      if (detstat.any(sls::defs::RUNNING) || detstat.any(sls::defs::WAITING)) {
-        _det->stopDetector();
+    if (_initialized) {
+      // get the status to test the detector connection
+      _det->getDetectorStatus();
+    } else {
+      std::vector<std::string> hostnames {_hostname};
+      try {
         _det->setHostname(hostnames);
-      } else {
-        // if detector wasn't running or stop fails re-raise to outer handler
-        throw;
+      } catch (const sls::RuntimeError &err) {
+        auto detstat = _det->getDetectorStatus();
+        if (detstat.any(sls::defs::RUNNING) || detstat.any(sls::defs::WAITING)) {
+          _det->stopDetector();
+          _det->setHostname(hostnames);
+        } else {
+          // if detector wasn't running or stop fails re-raise to outer handler
+          throw;
+        }
       }
+      _initialized = true;
     }
   } catch (const sls::RuntimeError &err) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -1367,7 +1374,6 @@ asynStatus SlsDet::readEnum(asynUser *pasynUser, char *strings[], int values[],
 void SlsDet::statusTask(void)
 {
   unsigned int status = 0;
-  bool last = false;
   bool enabled = false;
   bool connected = false;
   bool init = false;
@@ -1409,10 +1415,20 @@ void SlsDet::statusTask(void)
     if (_exiting) break;
 
     // check if we are enabled and connected
-    last = enabled;
     this->lock();
     enabled = isEnabled();
     connected = isConnected();
+    // exit early if not enabled
+    if (!enabled) {
+      if (connected) {
+        // set that the detector has disconnected
+        setIntegerParam(_connStatusParam, DISCONNECTED);
+        /* Call the callbacks to update any changes */
+        callParamCallbacks();
+      }
+      this->unlock();
+      continue;
+    }
     init = !connected;
     // Look for requested writes in the string features
     for (auto& kv : _stringFeatures) {
@@ -1496,33 +1512,26 @@ void SlsDet::statusTask(void)
     }
     this->unlock();
 
-    if (!enabled) continue;
-
     // if enabled and not connected try to connect
     if (init) {
       asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
                 "%s:%s, port=%s hostname=%s - attempting to connect\n",
                 driverName, functionName, this->portName, _hostname.c_str());
-      do {
-        epicsThreadSleep(_connPollingPeriod);
-        connected = connectDetector();
-      } while(!connected);
-      this->lock();
-      // do extra initialization on connect
-      updateEnums();
-      setIntegerParam(_connStatusParam, CONNECTED);
-      /* Call the callbacks to update any changes */
-      callParamCallbacks();
-      this->unlock();
-      asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
-                "%s:%s, port=%s hostname=%s - connected\n",
-                driverName, functionName, this->portName, _hostname.c_str());
-    } else if (!last) {
-      asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
-                "%s:%s, port=%s hostname=%s - re-enabling\n",
-                driverName, functionName, this->portName, _hostname.c_str());
-      // wait on re-enable before talking to modules
       epicsThreadSleep(_connPollingPeriod);
+      if (connectDetector()) {
+        this->lock();
+        // do extra initialization on connect
+        updateEnums();
+        setIntegerParam(_connStatusParam, CONNECTED);
+        /* Call the callbacks to update any changes */
+        callParamCallbacks();
+        this->unlock();
+        asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+                  "%s:%s, port=%s hostname=%s - connected\n",
+                  driverName, functionName, this->portName, _hostname.c_str());
+      } else {
+        continue;
+      }
     }
 
     try {
@@ -1587,8 +1596,12 @@ void SlsDet::statusTask(void)
                 "%s:%s, port=%s hostname=%s - %s\n",
                 driverName, functionName, this->portName, _hostname.c_str(), err.what());
 
-      // if the connection failed don't spam retry too fast
-      enabled = false;
+      // set that the detector has disconnected
+      this->lock();
+      setIntegerParam(_connStatusParam, DISCONNECTED);
+      /* Call the callbacks to update any changes */
+      callParamCallbacks();
+      this->unlock();
       continue;
     }
 

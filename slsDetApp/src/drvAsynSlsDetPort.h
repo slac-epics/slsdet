@@ -106,6 +106,7 @@ private:
   const int                       _id;
   bool                            _exiting;
   int                             _exited;
+  bool                            _initialized;
   double                          _pollingPeriod;
   double                          _fastPollingPeriod;
   double                          _connPollingPeriod;
