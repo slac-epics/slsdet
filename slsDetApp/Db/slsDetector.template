@@ -111,11 +111,11 @@ record(bi, "$(SLSDET):$(MOD):CONN_STATUS")
   field(INP,  "@asyn($(PORT))SLS_CONN_STATUS")
 }
 
-record(longin, "$(SLSDET):$(MOD):NEXT_FRAME")
+record(int64in, "$(SLSDET):$(MOD):NEXT_FRAME")
 {
   field(DESC, "The next frame number of the module")
   field(SCAN, "I/O Intr")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(INP,  "@asyn($(PORT))SLS_NEXT_FRAME")
 }
 
@@ -198,7 +198,7 @@ record(ai, "$(SLSDET):$(MOD):FPGA_TEMP")
 {
   field(DESC, "Temperature sensor on the module FPGA")
   field(EGU,  "C")
-  field(PREC, "3")
+  field(PREC, "1")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT))SLS_FPGA_TEMP")
@@ -208,7 +208,7 @@ record(ai, "$(SLSDET):$(MOD):ADC_TEMP")
 {
   field(DESC, "Temperature sensor on the module ADC")
   field(EGU,  "C")
-  field(PREC, "3")
+  field(PREC, "1")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT))SLS_ADC_TEMP")
@@ -235,7 +235,7 @@ record(ao, "$(SLSDET):$(MOD):TEMP_THRESHOLD")
 {
   field(DESC, "Module shutdown temp")
   field(EGU,  "C")
-  field(PREC, "3")
+  field(PREC, "1")
   field(DTYP, "asynFloat64")
   field(OUT,  "@asyn($(PORT))SLS_SET_TEMP_THRESHOLD")
 }
@@ -244,7 +244,7 @@ record(ai, "$(SLSDET):$(MOD):TEMP_THRESHOLD_RBV")
 {
   field(DESC, "Module shutdown temp readback")
   field(EGU,  "C")
-  field(PREC, "3")
+  field(PREC, "1")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynFloat64")
   field(INP,  "@asyn($(PORT))SLS_GET_TEMP_THRESHOLD")
@@ -352,33 +352,33 @@ record(mbbi, "$(SLSDET):$(MOD):TRIGGER_MODE_RBV")
   field(INP,  "@asyn($(PORT))SLS_GET_TRIGGER")
 }
 
-record(longout, "$(SLSDET):$(MOD):NUM_FRAMES")
+record(int64out, "$(SLSDET):$(MOD):NUM_FRAMES")
 {
   field(DESC, "Number of frames per trigger")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(OUT,  "@asyn($(PORT))SLS_SET_NUM_FRAMES")
 }
 
-record(longin, "$(SLSDET):$(MOD):NUM_FRAMES_RBV")
+record(int64in, "$(SLSDET):$(MOD):NUM_FRAMES_RBV")
 {
   field(DESC, "Number of frames per trigger readback")
   field(SCAN, "I/O Intr")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(INP,  "@asyn($(PORT))SLS_GET_NUM_FRAMES")
 }
 
-record(longout, "$(SLSDET):$(MOD):NUM_TRIGGERS")
+record(int64out, "$(SLSDET):$(MOD):NUM_TRIGGERS")
 {
   field(DESC, "Num triggers per acquisition")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(OUT,  "@asyn($(PORT))SLS_SET_NUM_TRIGGERS")
 }
 
-record(longin, "$(SLSDET):$(MOD):NUM_TRIGGERS_RBV")
+record(int64in, "$(SLSDET):$(MOD):NUM_TRIGGERS_RBV")
 {
   field(DESC, "Num triggers per acquisition readback")
   field(SCAN, "I/O Intr")
-  field(DTYP, "asynInt32")
+  field(DTYP, "asynInt64")
   field(INP,  "@asyn($(PORT))SLS_GET_NUM_TRIGGERS")
 }
 
@@ -412,14 +412,14 @@ record(bi, "$(SLSDET):$(MOD):ACTIVE_SFP_RBV")
   field(INP,  "@asyn($(PORT))SLS_GET_ACT_SFP")
 }
 
-record(longout, "$(SLSDET):$(MOD):DST_PORT")
+record(longout, "$(SLSDET):$(MOD):DEST_PORT")
 {
   field(DESC, "UDP dest port")
   field(DTYP, "asynInt32")
   field(OUT,  "@asyn($(PORT))SLS_SET_DST_PORT")
 }
 
-record(longin, "$(SLSDET):$(MOD):DST_PORT_RBV")
+record(longin, "$(SLSDET):$(MOD):DEST_PORT_RBV")
 {
   field(DESC, "UDP dest port readback")
   field(SCAN, "I/O Intr")
@@ -427,14 +427,14 @@ record(longin, "$(SLSDET):$(MOD):DST_PORT_RBV")
   field(INP,  "@asyn($(PORT))SLS_GET_DST_PORT")
 }
 
-record(longout, "$(SLSDET):$(MOD):DST_PORT2")
+record(longout, "$(SLSDET):$(MOD):DEST_PORT2")
 {
   field(DESC, "UDP dest port2")
   field(DTYP, "asynInt32")
   field(OUT,  "@asyn($(PORT))SLS_SET_DST_PORT2")
 }
 
-record(longin, "$(SLSDET):$(MOD):DST_PORT2_RBV")
+record(longin, "$(SLSDET):$(MOD):DEST_PORT2_RBV")
 {
   field(DESC, "UDP dest port2 readback")
   field(SCAN, "I/O Intr")
